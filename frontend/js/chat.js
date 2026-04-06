@@ -1,6 +1,6 @@
 const user = JSON.parse(localStorage.getItem('user'));
 if (!user || !localStorage.getItem('token')) {
-  window.location.href = 'login.html';
+  window.location.href = 'index.html';
 }
 
 document.getElementById('myUsername').textContent = user.username;

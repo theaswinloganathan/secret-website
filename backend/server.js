@@ -23,6 +23,11 @@ app.use(compression()); // Gzip payload compression for speed
 app.use(cors());
 app.use(express.json());
 
+// Health check route for browser visits
+app.get('/', (req, res) => {
+  res.send('Chat API is successfully running!');
+});
+
 app.use('/api', authRoutes);
 app.use('/api', userRoutes);
 app.use('/api', chatRoutes);

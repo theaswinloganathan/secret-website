@@ -17,7 +17,7 @@
       <p style="font-size: 0.8em; color: var(--text-muted); margin-top:-10px;">Chat password is required to approve inbound messages from others.</p>
       <button type="submit" id="submitBtn">Sign Up</button>
     </form>
-    <p style="text-align: center; margin-top: 15px;">Already have an account? <a href="login.html">Login</a></p>
+    <p style="text-align: center; margin-top: 15px;">Already have an account? <a href="index.html">Login</a></p>
   </div>
   <script src="js/api.js"></script>
   <script>
@@ -40,7 +40,7 @@
         });
 
         alert('Registration successful. Please login.');
-        window.location.href = 'login.html';
+        window.location.href = 'index.html';
       } catch (err) {
         errorMsg.textContent = err.message;
         errorMsg.style.display = 'block';
