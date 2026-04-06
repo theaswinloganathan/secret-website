@@ -17,4 +17,7 @@ const messageSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+// Compound index to drastically speed up finding chat history between two users
+messageSchema.index({ senderId: 1, receiverId: 1 });
+
 module.exports = mongoose.model('Message', messageSchema);

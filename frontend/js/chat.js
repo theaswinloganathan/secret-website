@@ -146,3 +146,25 @@ document.getElementById('messageInput').addEventListener('keypress', (e) => {
     document.getElementById('sendBtn').click();
   }
 });
+
+const emojiBtn = document.getElementById('emojiBtn');
+const emojiPicker = document.getElementById('emojiPicker');
+const msgInput = document.getElementById('messageInput');
+
+if (emojiBtn && emojiPicker) {
+  emojiBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation(); // Prevent the click from bubbling to the document
+    emojiPicker.style.display = emojiPicker.style.display === 'none' ? 'block' : 'none';
+  });
+
+  emojiPicker.addEventListener('emoji-click', event => {
+    msgInput.value += event.detail.unicode;
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!emojiBtn.contains(e.target) && !emojiPicker.contains(e.target)) {
+      emojiPicker.style.display = 'none';
+    }
+  });
+}

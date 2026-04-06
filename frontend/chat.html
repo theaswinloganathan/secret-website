@@ -6,6 +6,7 @@
   <link rel="stylesheet" href="css/style.css">
   <script src="http://localhost:5000/socket.io/socket.io.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <script type="module" src="https://unpkg.com/emoji-picker-element@1"></script>
 </head>
 <body>
   <div class="app-container">
@@ -28,9 +29,11 @@
         <span id="statusIndicator" class="status" style="display: inline-block; margin-left: 10px;"></span>
       </div>
       <div class="messages" id="messagesContainer"></div>
-      <div class="message-input">
+      <div class="message-input" style="position: relative;">
+        <button type="button" id="emojiBtn" style="padding: 10px; border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; background: rgba(0,0,0,0.2); border: none;">😊</button>
         <input type="text" id="messageInput" placeholder="Type a message...">
         <button id="sendBtn">Send</button>
+        <emoji-picker id="emojiPicker" style="position: absolute; bottom: 85px; left: 20px; display: none; z-index: 1000; --background: var(--glass-bg); --border-color: var(--glass-border); --text-color: var(--text-color);"></emoji-picker>
       </div>
     </div>
     <div class="chat-area" id="placeholderArea" style="justify-content: center; align-items: center;">

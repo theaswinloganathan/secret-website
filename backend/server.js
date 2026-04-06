@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const compression = require('compression');
 const http = require('http');
 const { Server } = require('socket.io');
 
@@ -18,6 +19,7 @@ const io = new Server(server, {
   }
 });
 
+app.use(compression()); // Gzip payload compression for speed
 app.use(cors());
 app.use(express.json());
 

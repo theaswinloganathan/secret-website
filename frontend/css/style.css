@@ -21,45 +21,16 @@
 body {
   /* Use Inter font for a clean, modern tech feel */
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background: radial-gradient(circle at bottom, #110e25, #000000 70%);
+  /* Setting cover to force fullscreen, using center 75% to pull the cats' faces directly into the exact middle height of the screen! */
+  background: url('../bg.jpg') center 75% / cover no-repeat fixed;
   color: var(--text-color);
   line-height: 1.6;
   min-height: 100vh;
-  /* Prevent scrolling for full-screen web app experience */
-  overflow: hidden; 
+  /* Allow scrolling to fix usability issues */
+  overflow: auto; 
 }
 
-/* 1. Depth & Layering: Multi-layer space background with depth illusion */
-body::before, body::after {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-image: 
-    radial-gradient(1.5px 1.5px at 20px 30px, #ffffff, rgba(0,0,0,0)),
-    radial-gradient(1.5px 1.5px at 40px 70px, rgba(255,255,255,0.8), rgba(0,0,0,0)),
-    radial-gradient(2px 2px at 90px 40px, rgba(255,255,255,0.6), rgba(0,0,0,0)),
-    radial-gradient(1px 1px at 160px 120px, rgba(255,255,255,0.5), rgba(0,0,0,0));
-  background-repeat: repeat;
-  background-size: 200px 200px;
-  animation: bgMove 120s linear infinite; /* Slow particle drift */
-  opacity: 0.5;
-}
-
-body::after {
-  background-image: 
-    radial-gradient(2px 2px at 50px 160px, rgba(0,240,255,0.6), rgba(0,0,0,0)),
-    radial-gradient(1px 1px at 180px 10px, rgba(255,255,255,0.4), rgba(0,0,0,0));
-  background-size: 300px 300px;
-  animation: bgMove 80s linear infinite reverse; /* Parallax effect */
-  opacity: 0.4;
-}
-
-@keyframes bgMove {
-  from { transform: translateY(0); }
-  to { transform: translateY(-500px); }
-}
+/* 1. Removed scattered particles for cleaner image background */
 
 /* 2. Floating Animations: Subtle vertical float */
 @keyframes float {
@@ -97,8 +68,8 @@ a:hover { color: #fff; text-shadow: 0 0 8px var(--primary-glow); }
   max-width: 420px;
   margin: 50px auto;
   padding: 40px 30px;
-  /* Add floating effect to overall login/signup panels */
-  animation: float 6s ease-in-out infinite, popIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  /* Removed conflicting animations */
+  animation: popIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
 h1, h2, h3 { text-align: center; margin-bottom: 25px; font-weight: 300; letter-spacing: 1.5px; }
@@ -185,8 +156,8 @@ button:disabled {
   width: 320px;
   display: flex;
   flex-direction: column;
-  /* Separate float animation for panels to feel independent */
-  animation: float 7s ease-in-out infinite, popIn 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  /* Removed conflicting animations */
+  animation: popIn 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
 .sidebar-header {
@@ -240,7 +211,7 @@ button:disabled {
   flex: 1;
   display: flex;
   flex-direction: column;
-  animation: floatReverse 8s ease-in-out infinite, popIn 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation: popIn 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
 .chat-header {
