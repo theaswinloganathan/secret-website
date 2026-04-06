@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chat</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="http://localhost:5000/socket.io/socket.io.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <span id="myUsername">Chat</span>
+        <div>
+          <a href="search.html" style="margin-right: 10px; font-size: 0.8em;">Search</a>
+          <a href="#" onclick="logout()" style="font-size: 0.8em; color: var(--error-color);">Logout</a>
+        </div>
+      </div>
+      <div class="user-list" id="sidebarList" style="padding: 10px; text-align: center; color: var(--text-muted);">
+        Use <a href="search.html">Search</a> to find users to chat with.
+      </div>
+    </div>
+    
+    <div class="chat-area" id="chatArea" style="display: none;">
+      <div class="chat-header">
+        <span id="chatTitle">Select a user</span>
+        <span id="statusIndicator" class="status" style="display: inline-block; margin-left: 10px;"></span>
+      </div>
+      <div class="messages" id="messagesContainer"></div>
+      <div class="message-input">
+        <input type="text" id="messageInput" placeholder="Type a message...">
+        <button id="sendBtn">Send</button>
+      </div>
+    </div>
+    <div class="chat-area" id="placeholderArea" style="justify-content: center; align-items: center;">
+      <h3 style="color: var(--text-muted)">Select a user to start chatting</h3>
+    </div>
+  </div>
+
+  <div id="passwordModal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <h3 style="text-align: center; margin-bottom: 15px;">Verify Access</h3>
+      <p style="font-size: 0.9em; margin-bottom: 15px; color: var(--text-muted);">
+        Enter <span id="targetNameHighlight"></span>'s chat password to start conversation.
+      </p>
+      <div id="modalErrorMsg" class="error-message"></div>
+      <input type="password" id="targetChatPassword" placeholder="Their Chat Password" style="margin-bottom: 15px;">
+      <button id="verifyBtn" style="width: 100%;">Verify</button>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/chat.js"></script>
+</body>
+</html>

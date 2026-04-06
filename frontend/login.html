@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - Private Chat</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Login</h2>
+    <div id="errorMsg" class="error-message"></div>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="Username" required>
+      <input type="password" id="loginPassword" placeholder="Login Password" required>
+      <button type="submit" id="submitBtn">Login</button>
+    </form>
+    <p style="text-align: center; margin-top: 15px;">Don't have an account? <a href="signup.html">Sign Up</a></p>
+  </div>
+  <script src="js/api.js"></script>
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const loginPassword = document.getElementById('loginPassword').value;
+      const errorMsg = document.getElementById('errorMsg');
+      const submitBtn = document.getElementById('submitBtn');
+
+      try {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Logging in...';
+        errorMsg.style.display = 'none';
+
+        const data = await fetchAPI('/login', {
+          method: 'POST',
+          body: JSON.stringify({ username, loginPassword })
+        });
+
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        window.location.href = 'search.html';
+      } catch (err) {
+        errorMsg.textContent = err.message;
+        errorMsg.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Login';
+      }
+    });
+  </script>
+</body>
+</html>

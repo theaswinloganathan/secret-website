@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Search Users</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container" style="max-width: 600px;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h2>Find Users</h2>
+      <div>
+        <a href="chat.html" style="margin-right: 15px;">Go to Chat</a>
+        <a href="#" onclick="logout()" style="color: var(--error-color);">Logout</a>
+      </div>
+    </div>
+    
+    <input type="text" id="searchInput" placeholder="Search by username..." style="margin-bottom: 20px;">
+    <div id="searchResults" class="user-list"></div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    if (!localStorage.getItem('token')) {
+      window.location.href = 'login.html';
+    }
+
+    let searchTimeout;
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      clearTimeout(searchTimeout);
+      const query = e.target.value.trim();
+      searchTimeout = setTimeout(async () => {
+        if (!query) {
+          document.getElementById('searchResults').innerHTML = '';
+          return;
+        }
+        try {
+          const users = await fetchAPI(`/search-users?query=${encodeURIComponent(query)}`);
+          const resultsDiv = document.getElementById('searchResults');
+          resultsDiv.innerHTML = '';
+          users.forEach(user => {
+            const div = document.createElement('div');
+            div.className = 'user-item';
+            div.innerHTML = `
+              <div class="avatar">${user.username.charAt(0).toUpperCase()}</div>
+              <div>${user.username}</div>
+            `;
+            div.onclick = () => {
+              window.location.href = `chat.html?target=${user._id}&name=${encodeURIComponent(user.username)}`;
+            };
+            resultsDiv.appendChild(div);
+          });
+        } catch (err) {
+          console.error(err);
+        }
+      }, 300);
+    });
+  </script>
+</body>
+</html>

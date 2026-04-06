@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sign Up - Private Chat</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Sign Up</h2>
+    <div id="errorMsg" class="error-message"></div>
+    <form id="signupForm">
+      <input type="text" id="username" placeholder="Username" required>
+      <input type="password" id="loginPassword" placeholder="Login Password" required>
+      <input type="password" id="chatPassword" placeholder="Chat Password" required>
+      <p style="font-size: 0.8em; color: var(--text-muted); margin-top:-10px;">Chat password is required to approve inbound messages from others.</p>
+      <button type="submit" id="submitBtn">Sign Up</button>
+    </form>
+    <p style="text-align: center; margin-top: 15px;">Already have an account? <a href="login.html">Login</a></p>
+  </div>
+  <script src="js/api.js"></script>
+  <script>
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const loginPassword = document.getElementById('loginPassword').value;
+      const chatPassword = document.getElementById('chatPassword').value;
+      const errorMsg = document.getElementById('errorMsg');
+      const submitBtn = document.getElementById('submitBtn');
+
+      try {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Signing up...';
+        errorMsg.style.display = 'none';
+
+        await fetchAPI('/register', {
+          method: 'POST',
+          body: JSON.stringify({ username, loginPassword, chatPassword })
+        });
+
+        alert('Registration successful. Please login.');
+        window.location.href = 'login.html';
+      } catch (err) {
+        errorMsg.textContent = err.message;
+        errorMsg.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sign Up';
+      }
+    });
+  </script>
+</body>
+</html>
