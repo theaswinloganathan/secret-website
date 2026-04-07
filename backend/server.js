@@ -20,12 +20,20 @@ const io = new Server(server, {
 });
 
 app.use(compression()); // Gzip payload compression for speed
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Chat-Token']
+}));
 app.use(express.json());
 
 // Health check route for browser visits
 app.get('/', (req, res) => {
-  res.send('Chat API is successfully running!');
+  const dbStatus = mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected';
+  res.json({ 
+    status: 'Chat API is successfully running!',
+    database: dbStatus
+  });
 });
 
 app.use('/api', authRoutes);
