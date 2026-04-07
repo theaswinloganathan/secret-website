@@ -30,9 +30,15 @@ app.use(express.json());
 // Health check route for browser visits
 app.get('/', (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected';
+  const missingVars = [];
+  if (!process.env.MONGODB_URI) missingVars.push('MONGODB_URI');
+  if (!process.env.JWT_SECRET) missingVars.push('JWT_SECRET');
+  if (!process.env.CHAT_TOKEN_SECRET) missingVars.push('CHAT_TOKEN_SECRET');
+
   res.json({ 
     status: 'Chat API is successfully running!',
-    database: dbStatus
+    database: dbStatus,
+    missing_env_vars: missingVars.length > 0 ? missingVars : 'None'
   });
 });
 
