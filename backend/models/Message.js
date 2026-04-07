@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const messageSchema = new mongoose.Schema({
+const MessageSchema = new mongoose.Schema({
   senderId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -12,12 +12,16 @@ const messageSchema = new mongoose.Schema({
     required: true
   },
   content: {
+    type: String
+  },
+  imageUrl: {
+    type: String
+  },
+  status: {
     type: String,
-    required: true
+    enum: ['sent', 'delivered', 'seen'],
+    default: 'sent'
   }
 }, { timestamps: true });
 
-// Compound index to drastically speed up finding chat history between two users
-messageSchema.index({ senderId: 1, receiverId: 1 });
-
-module.exports = mongoose.model('Message', messageSchema);
+module.exports = mongoose.model('Message', MessageSchema);
