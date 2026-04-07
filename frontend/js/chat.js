@@ -5,7 +5,7 @@ if (!user || !localStorage.getItem('token')) {
 
 document.getElementById('myUsername').textContent = user.username;
 
-const socket = io('http://localhost:5000');
+const socket = io('https://secret-website-6ggb.onrender.com');
 socket.emit('register', user.id);
 
 const urlParams = new URLSearchParams(window.location.search);

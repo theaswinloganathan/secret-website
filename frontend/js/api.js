@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://secret-website-6ggb.onrender.com/api';
 
 const fetchAPI = async (endpoint, options = {}) => {
   const token = localStorage.getItem('token');
