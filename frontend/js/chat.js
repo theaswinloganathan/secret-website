@@ -231,9 +231,19 @@ const photoBtn = document.getElementById('photoBtn');
 const fileInput = document.getElementById('fileInput');
 
 if (photoBtn && fileInput) {
+  const galleryBtn = document.getElementById('galleryBtn');
+  
   photoBtn.addEventListener('click', () => {
-    fileInput.click();
+    if (window.openCameraFeature) {
+      window.openCameraFeature();
+    }
   });
+
+  if (galleryBtn) {
+    galleryBtn.addEventListener('click', () => {
+      fileInput.click();
+    });
+  }
 
   fileInput.addEventListener('change', async (e) => {
     const file = e.target.files[0];
