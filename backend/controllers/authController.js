@@ -57,7 +57,10 @@ exports.login = async (req, res) => {
 
     res.json({ token, user: { id: user._id, username: user.username } });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Login Error DEBUG:', err.message);
+    if (err.message.includes('secret')) {
+      return res.status(500).json({ message: 'Server Secret Key is missing in Render variables' });
+    }
+    res.status(500).json({ message: 'Server error: ' + err.message });
   }
 };
