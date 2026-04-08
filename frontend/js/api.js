@@ -1,4 +1,4 @@
-const API_BASE_URL = window.location.origin;
+const API_BASE_URL = 'https://secret-website-6ggb.onrender.com';
 const API_URL = `${API_BASE_URL}/api`;
 
 const fetchAPI = async (endpoint, options = {}) => {

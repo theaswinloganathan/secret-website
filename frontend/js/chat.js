@@ -5,7 +5,7 @@ if (!user || !localStorage.getItem('token')) {
 
 document.getElementById('myUsername').textContent = user.username;
 
-const socket = io(window.location.origin);
+const socket = io(API_BASE_URL);
 socket.emit('register', user.id);
 
 const urlParams = new URLSearchParams(window.location.search);
