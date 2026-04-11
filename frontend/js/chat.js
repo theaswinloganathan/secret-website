@@ -19,6 +19,17 @@ let currentRoomId = null;
 const getRoomId = (id1, id2) => [id1, id2].sort().join('_');
 
 socket.on('receive_message', (msg) => {
+  // Check if we already have this message (e.g. from Optimistic UI)
+  const existing = document.querySelector(`[data-id="${msg._id}"]`);
+  if (existing) {
+    // Just update status if needed
+    const ticks = existing.querySelector('.status-ticks');
+    if (ticks && msg.status === 'delivered') {
+      ticks.innerHTML = '✓✓';
+    }
+    return;
+  }
+
   if (msg.senderId === currentTargetId || msg.senderId === user.id) {
     appendMessage(msg, msg.senderId === user.id);
   }
@@ -50,6 +61,7 @@ const appendMessage = (msg, isSent) => {
   if (msg.imageUrl) {
     const img = document.createElement('img');
     img.src = `${API_BASE_URL}${msg.imageUrl}`;
+    img.loading = 'lazy';
     img.style.maxWidth = '100%';
     img.style.borderRadius = '8px';
     img.style.marginTop = '5px';
@@ -203,21 +215,54 @@ document.getElementById('verifyBtn').addEventListener('click', async () => {
 
 document.getElementById('sendBtn').addEventListener('click', async () => {
   const input = document.getElementById('messageInput');
+  const btn = document.getElementById('sendBtn');
   const content = input.value.trim();
-  if (!content) return;
+  if (!content || btn.disabled) return;
+  
+  // Optimistic UI: Create temporary message ID
+  const tempId = 'temp_' + Date.now();
+  const tempMsg = {
+    _id: tempId,
+    senderId: user.id,
+    receiverId: currentTargetId,
+    content: content,
+    status: 'sending',
+    createdAt: new Date().toISOString()
+  };
+  
+  // Append immediately
+  appendMessage(tempMsg, true);
+  input.value = '';
+  input.focus();
   
   try {
+    btn.disabled = true;
     const msg = await fetchAPI('/messages', {
       method: 'POST',
       headers: { 'X-Chat-Token': currentChatToken },
       body: JSON.stringify({ receiverId: currentTargetId, content })
     });
     
+    // Replace temp message with real one in DOM
+    const tempEl = document.querySelector(`[data-id="${tempId}"]`);
+    if (tempEl) {
+      tempEl.setAttribute('data-id', msg._id);
+      const statusTicks = tempEl.querySelector('.status-ticks');
+      if (statusTicks) statusTicks.innerHTML = '✓';
+    }
+
     socket.emit('send_message', { roomId: currentRoomId, message: msg });
-    input.value = '';
   } catch (err) {
     console.error(err);
+    const tempEl = document.querySelector(`[data-id="${tempId}"]`);
+    if (tempEl) {
+      tempEl.style.opacity = '0.5';
+      const statusTicks = tempEl.querySelector('.status-ticks');
+      if (statusTicks) statusTicks.innerHTML = '⚠️';
+    }
     alert('Failed to send message.');
+  } finally {
+    btn.disabled = false;
   }
 });
 

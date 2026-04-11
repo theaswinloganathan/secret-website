@@ -4,32 +4,96 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Login - Private Chat</title>
-  <link rel="stylesheet" href="css/style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=0.1.5">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="container">
-    <h2>Login</h2>
+  <div class="particles-container" id="particles"></div>
+
+  <div class="glass-card" id="loginCard">
+    <div class="branding">
+      <h1>Private Chat</h1>
+      <p>Private chat. Your rules.</p>
+    </div>
+
     <div id="errorMsg" class="error-message"></div>
+
     <form id="loginForm">
-      <input type="text" id="username" placeholder="Username" required>
-      <input type="password" id="loginPassword" placeholder="Login Password" required>
-      <button type="submit" id="submitBtn">Login</button>
+      <div class="input-group">
+        <input type="text" id="username" placeholder=" " required autocomplete="username">
+        <label for="username">Username</label>
+        <div class="input-focus-glow"></div>
+      </div>
+
+      <div class="input-group">
+        <input type="password" id="loginPassword" placeholder=" " required autocomplete="current-password">
+        <label for="loginPassword">Password</label>
+        <span class="password-toggle" id="togglePass">👁️</span>
+        <div class="input-focus-glow"></div>
+      </div>
+
+      <button type="submit" id="submitBtn" class="btn-primary">
+        <span>Log In</span>
+      </button>
     </form>
-    <p style="text-align: center; margin-top: 15px;">Don't have an account? <a href="signup.html">Sign Up</a></p>
+
+    <div class="form-footer">
+      <p>Don't have an account? <a href="signup.html">Create Access</a></p>
+    </div>
   </div>
-  <script src="js/api.js?v=0.1.3"></script>
+
+  <script src="js/api.js?v=0.1.5"></script>
   <script>
+    // Ripple Effect Logic
+    document.querySelectorAll('.btn-primary').forEach(button => {
+      button.addEventListener('click', function(e) {
+        let x = e.clientX - e.target.offsetLeft;
+        let y = e.clientY - e.target.offsetTop;
+        let ripple = document.createElement('span');
+        ripple.className = 'ripple';
+        ripple.style.left = x + 'px';
+        ripple.style.top = y + 'px';
+        this.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 600);
+      });
+    });
+
+    // Password Toggle Logic
+    const togglePass = document.getElementById('togglePass');
+    const passInput = document.getElementById('loginPassword');
+    togglePass.addEventListener('click', () => {
+      const type = passInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passInput.setAttribute('type', type);
+      togglePass.textContent = type === 'password' ? '👁️' : '🙈';
+    });
+
+    // Particles Animation
+    const particles = document.getElementById('particles');
+    for (let i = 0; i < 20; i++) {
+      const p = document.createElement('div');
+      p.style.position = 'absolute';
+      p.style.width = Math.random() * 5 + 'px';
+      p.style.height = p.style.width;
+      p.style.background = 'rgba(255,255,255,0.1)';
+      p.style.borderRadius = '50%';
+      p.style.top = Math.random() * 100 + '%';
+      p.style.left = Math.random() * 100 + '%';
+      p.style.animation = `floatBG ${Math.random() * 5 + 5}s infinite ease-in-out`;
+      particles.appendChild(p);
+    }
+
+    // Login Logic
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const username = document.getElementById('username').value;
       const loginPassword = document.getElementById('loginPassword').value;
       const errorMsg = document.getElementById('errorMsg');
       const submitBtn = document.getElementById('submitBtn');
+      const card = document.getElementById('loginCard');
 
       try {
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Logging in...';
+        submitBtn.querySelector('span').textContent = 'Authenticating...';
         errorMsg.style.display = 'none';
 
         const data = await fetchAPI('/login', {
@@ -39,13 +103,17 @@
 
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        window.location.href = 'search.html';
+        
+        card.classList.add('fade-out');
+        setTimeout(() => window.location.href = 'search.html', 400);
       } catch (err) {
         errorMsg.textContent = err.message;
         errorMsg.style.display = 'block';
+        card.classList.add('shake');
+        setTimeout(() => card.classList.remove('shake'), 400);
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Login';
+        submitBtn.querySelector('span').textContent = 'Log In';
       }
     });
   </script>
