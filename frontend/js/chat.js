@@ -135,15 +135,12 @@ const appendMessage = (msg, isSent) => {
   container.scrollTop = container.scrollHeight;
 };
 
+// No modal in chat.html anymore
 const showModal = () => {
-  document.getElementById('passwordModal').classList.remove('hidden');
-  document.getElementById('targetNameHighlight').textContent = targetName;
+  window.location.href = 'search.html';
 };
 
-const hideModal = () => {
-  document.getElementById('passwordModal').classList.add('hidden');
-  document.getElementById('targetChatPassword').value = '';
-};
+const hideModal = () => {};
 
 const loadMessages = async () => {
   try {
@@ -187,30 +184,7 @@ if (currentTargetId && targetName) {
   }
 }
 
-document.getElementById('verifyBtn').addEventListener('click', async () => {
-  const cpInput = document.getElementById('targetChatPassword').value;
-  const errorMsg = document.getElementById('modalErrorMsg');
-  const btn = document.getElementById('verifyBtn');
-  
-  try {
-    btn.disabled = true;
-    errorMsg.style.display = 'none';
-    const data = await fetchAPI('/verify-chat-password', {
-      method: 'POST',
-      body: JSON.stringify({ targetUserId: currentTargetId, chatPassword: cpInput })
-    });
-    
-    currentChatToken = data.chatToken;
-    sessionStorage.setItem(`chatToken_${currentTargetId}`, currentChatToken);
-    hideModal();
-    openChat();
-  } catch (err) {
-    errorMsg.textContent = err.message;
-    errorMsg.style.display = 'block';
-  } finally {
-    btn.disabled = false;
-  }
-});
+// Verification now happens on search.html
 
 document.getElementById('sendBtn').addEventListener('click', async () => {
   const input = document.getElementById('messageInput');

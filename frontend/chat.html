@@ -21,10 +21,17 @@
       background: #050510;
     }
 
+    body::before {
+      display: none !important;
+    }
+
     .bg-overlay {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.75);
+      background: #050510;
+      background-image: 
+        radial-gradient(circle at 20% 30%, rgba(0, 242, 254, 0.05), transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(112, 0, 255, 0.05), transparent 40%);
       z-index: -1;
     }
 
@@ -269,6 +276,42 @@
       transform: translateY(-2px);
     }
 
+    /* Fix Camera Modal Z-Index and Style */
+    #cameraModal {
+      backdrop-filter: blur(25px);
+    }
+
+    .camera-container {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 30px;
+      padding: 20px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+    }
+
+    .camera-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .camera-viewport {
+      border-radius: 20px;
+      overflow: hidden;
+      aspect-ratio: 3/4;
+      background: #000;
+      border: 1px solid var(--glass-border);
+    }
+
+    #cameraVideo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
     .main-input-wrapper {
       flex: 1;
       position: relative;
@@ -406,16 +449,6 @@
     </div>
   </div>
 
-  <div id="passwordModal" class="modal-overlay hidden">
-    <div class="modal-content">
-      <h3 style="margin-bottom: 10px; color: var(--primary-color);">Verify Access</h3>
-      <p style="font-size: 0.9em; margin-bottom: 20px; color: var(--text-muted);">
-        Enter <b id="targetNameHighlight" style="color: white;"></b>'s password to decrypt the chat.
-      </p>
-      <input type="password" id="targetChatPassword" placeholder="Chat Password" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.05); color: white; margin-bottom: 20px; outline: none; text-align: center; letter-spacing: 2px;">
-      <div id="modalErrorMsg" style="color: var(--error-color); font-size: 0.8rem; margin-top: -15px; margin-bottom: 15px; display: none;"></div>
-      <button id="verifyBtn" class="btn-primary" style="width: 100%;">Unlock Chat</button>
-    </div>
   </div>
 
   <!-- Camera Modal -->
