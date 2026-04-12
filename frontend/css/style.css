@@ -116,9 +116,28 @@ body::before {
   transition: all 0.3s ease;
 }
 
+/* Fix autofill hiding the background transparency */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px var(--glass-bg) inset !important;
+    -webkit-text-fill-color: #ffffff !important;
+    transition: background-color 5000s ease-in-out 0s;
+    animation-name: onAutoFillStart;
+}
+
+input:not(:-webkit-autofill) {
+    animation-name: onAutoFillCancel;
+}
+
+@keyframes onAutoFillStart { from {} to {} }
+@keyframes onAutoFillCancel { from {} to {} }
+
 .input-group input:focus ~ label,
 .input-group input:not(:placeholder-shown) ~ label,
-.input-group input:-webkit-autofill ~ label {
+.input-group input:-webkit-autofill ~ label,
+.input-group input.has-val ~ label {
   top: -10px;
   font-size: 0.8rem;
   color: var(--primary-color);
