@@ -12,27 +12,33 @@
 
   <div class="glass-card" id="loginCard">
     <div class="branding">
-      <h1 style="font-weight: 400; font-size: 1.8rem; background: unset; -webkit-text-fill-color: #fff; letter-spacing: normal;">Login</h1>
+      <h1>Private Chat</h1>
+      <p>Private chat. Your rules.</p>
     </div>
 
     <div id="errorMsg" class="error-message"></div>
 
     <form id="loginForm">
       <div class="input-group">
-        <input type="text" id="username" placeholder="Username" required style="background: rgba(255,255,255,0.15); border: none; border-radius: 8px; padding: 12px 15px; font-size: 0.95rem;">
+        <input type="text" id="username" placeholder=" " required autocomplete="username">
+        <label for="username">Username</label>
+        <div class="input-focus-glow"></div>
       </div>
 
       <div class="input-group">
-        <input type="password" id="loginPassword" placeholder="Login Password" required style="background: rgba(255,255,255,0.15); border: none; border-radius: 8px; padding: 12px 15px; font-size: 0.95rem;">
+        <input type="password" id="loginPassword" placeholder=" " required autocomplete="current-password">
+        <label for="loginPassword">Password</label>
+        <span class="password-toggle" id="togglePass">👁️</span>
+        <div class="input-focus-glow"></div>
       </div>
 
-      <button type="submit" id="submitBtn" class="btn-primary" style="background: rgba(255,255,255,0.15); box-shadow: none; border: 1px solid rgba(0, 242, 254, 0.5); color: #00f2fe; text-transform: uppercase;">
-        <span>LOGIN</span>
+      <button type="submit" id="submitBtn" class="btn-primary">
+        <span>Log In</span>
       </button>
     </form>
 
-    <div class="form-footer" style="margin-top: 20px; color: #fff;">
-      <p>Don't have an account? <a href="signup.html" style="color: #00f2fe;">Sign Up</a></p>
+    <div class="form-footer">
+      <p>Don't have an account? <a href="signup.html">Create Access</a></p>
     </div>
   </div>
 

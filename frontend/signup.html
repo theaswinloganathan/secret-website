@@ -12,33 +12,68 @@
 
   <div class="glass-card" id="signupCard">
     <div class="branding">
-      <h1 style="font-weight: 400; font-size: 1.8rem; background: unset; -webkit-text-fill-color: #fff; letter-spacing: normal;">Sign Up</h1>
+      <h1>Initialize Access</h1>
+      <p>Private chat. Your rules.</p>
+    </div>
+
+    <!-- Step Indicator -->
+    <div class="step-indicator">
+      <div class="step-dot active" id="dot1"></div>
+      <div class="step-dot" id="dot2"></div>
+      <div class="step-dot" id="dot3"></div>
     </div>
 
     <div id="errorMsg" class="error-message"></div>
 
     <form id="signupForm">
-      <div class="input-group">
-        <input type="text" id="username" placeholder="Username" required style="background: rgba(255,255,255,0.15); border: none; border-radius: 8px; padding: 12px 15px; font-size: 0.95rem;">
+      <!-- Step 1: Username -->
+      <div class="signup-step active" id="step1">
+        <div class="input-group">
+          <input type="text" id="username" placeholder=" " required>
+          <label>Unique Username</label>
+          <div class="input-focus-glow"></div>
+        </div>
+        <button type="button" class="btn-primary" onclick="goToStep(2)">Next Phase</button>
       </div>
 
-      <div class="input-group">
-        <input type="password" id="loginPassword" placeholder="Login Password" required style="background: rgba(255,255,255,0.15); border: none; border-radius: 8px; padding: 12px 15px; font-size: 0.95rem;">
+      <!-- Step 2: Login Password -->
+      <div class="signup-step" id="step2">
+        <div class="input-group">
+          <input type="password" id="loginPassword" placeholder=" " required>
+          <label>Master Password</label>
+          <span class="password-toggle" onclick="togglePass('loginPassword', this)">👁️</span>
+          <div class="input-focus-glow"></div>
+        </div>
+        <div class="strength-meter">
+          <div class="strength-bar" id="strengthBar"></div>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button type="button" class="btn-primary" style="background:rgba(255,255,255,0.05);" onclick="goToStep(1)">Back</button>
+          <button type="button" class="btn-primary" onclick="goToStep(3)">Secure Password</button>
+        </div>
       </div>
 
-      <div class="input-group">
-        <input type="password" id="chatPassword" placeholder="Chat Password" required style="background: rgba(255,255,255,0.15); border: none; border-radius: 8px; padding: 12px 15px; font-size: 0.95rem;">
+      <!-- Step 3: Secret Chat Key -->
+      <div class="signup-step" id="step3">
+        <div class="input-group">
+          <input type="password" id="chatPassword" placeholder=" " required>
+          <label>Secret Chat Key 🔐</label>
+          <span class="password-toggle" onclick="togglePass('chatPassword', this)">👁️</span>
+          <div class="input-focus-glow"></div>
+        </div>
+        <span class="helper-text">Only users with this key can chat with you. Keep it safe.</span>
+        
+        <div style="display:flex; gap:10px;">
+          <button type="button" class="btn-primary" style="background:rgba(255,255,255,0.05);" onclick="goToStep(2)">Back</button>
+          <button type="submit" id="submitBtn" class="btn-primary">
+            <span>Activate Access</span>
+          </button>
+        </div>
       </div>
-      
-      <p style="font-size: 0.75rem; color: #a0a0c0; text-align: left; margin-top: -15px; margin-bottom: 20px; line-height: 1.4;">Chat password is required to approve inbound messages from others.</p>
-
-      <button type="submit" id="submitBtn" class="btn-primary" style="background: rgba(255,255,255,0.15); box-shadow: none; border: 1px solid rgba(0, 242, 254, 0.5); color: #00f2fe; text-transform: uppercase;">
-        <span>SIGN UP</span>
-      </button>
     </form>
 
-    <div class="form-footer" style="margin-top: 20px; color: #fff;">
-      <p>Already have an account? <a href="index.html" style="color: #00f2fe;">Login</a></p>
+    <div class="form-footer">
+      <p>Already authorized? <a href="index.html">Log In</a></p>
     </div>
   </div>
 
