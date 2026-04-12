@@ -117,7 +117,8 @@ body::before {
 }
 
 .input-group input:focus ~ label,
-.input-group input:not(:placeholder-shown) ~ label {
+.input-group input:not(:placeholder-shown) ~ label,
+.input-group input:-webkit-autofill ~ label {
   top: -10px;
   font-size: 0.8rem;
   color: var(--primary-color);
