@@ -9,8 +9,8 @@
   --accent-color: #7000ff;
   --error-color: #ff3366;
   --success-color: #00ff88;
-  --glass-bg: rgba(255, 255, 255, 0.05);
-  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-bg: rgba(0, 0, 0, 0.45);
+  --glass-border: rgba(255, 255, 255, 0.15);
   --glow-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
 }
 
@@ -97,8 +97,9 @@ body::before {
 .input-group input {
   width: 100%;
   padding: 15px 0 10px;
-  font-size: 1rem;
-  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #ffffff !important;
   background: transparent;
   border: none;
   border-bottom: 1px solid var(--glass-border);
