@@ -10,51 +10,411 @@
   <script type="module" src="https://unpkg.com/emoji-picker-element@1"></script>
 </head>
 <body>
+  <style>
+    body {
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #050510;
+    }
+
+    .bg-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: -1;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 600px;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      background: var(--glass-bg);
+      backdrop-filter: blur(25px);
+      border-left: 1px solid var(--glass-border);
+      border-right: 1px solid var(--glass-border);
+      position: relative;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Minimal Header */
+    .chat-header {
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      background: rgba(0, 0, 0, 0.3);
+      border-bottom: 1px solid var(--glass-border);
+      backdrop-filter: blur(10px);
+      z-index: 100;
+    }
+
+    .back-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateX(-3px);
+    }
+
+    .header-info {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: #050510;
+      font-size: 1.1rem;
+    }
+
+    .header-user-name {
+      font-weight: 600;
+      font-size: 1.1rem;
+      letter-spacing: 0.5px;
+    }
+
+    /* Messages Area */
+    .chat-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .messages-container {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: url('https://www.transparenttextures.com/patterns/dark-matter.png'); /* Subtle pattern */
+      scroll-behavior: smooth;
+    }
+
+    .messages-container::-webkit-scrollbar {
+      width: 4px;
+    }
+    .messages-container::-webkit-scrollbar-thumb {
+      background: var(--glass-border);
+      border-radius: 10px;
+    }
+
+    /* Modern Bubbles */
+    .message {
+      max-width: 80%;
+      padding: 12px 16px;
+      border-radius: 20px;
+      position: relative;
+      font-size: 0.95rem;
+      line-height: 1.4;
+      animation: msgPop 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+      word-wrap: break-word;
+    }
+
+    @keyframes msgPop {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .message.sent {
+      align-self: flex-end;
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.2), rgba(79, 172, 254, 0.1));
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.received {
+      align-self: flex-start;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--glass-border);
+      color: #e0e0f0;
+      border-bottom-left-radius: 4px;
+    }
+
+    .message-content-wrapper img {
+      width: 100%;
+      max-width: 300px;
+      border-radius: 12px;
+      margin-bottom: 5px;
+      cursor: pointer;
+      transition: transform 0.2s;
+      display: block;
+    }
+
+    .message-content-wrapper img:hover {
+      transform: scale(1.02);
+    }
+
+    .image-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .img-action-btn {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: color 0.2s;
+    }
+
+    .img-action-btn:hover {
+      color: var(--primary-color);
+    }
+
+    .status-ticks {
+      font-size: 0.7rem;
+      text-align: right;
+      margin-top: 4px;
+      opacity: 0.7;
+    }
+
+    .status-ticks.seen {
+      color: var(--primary-color);
+    }
+
+    .msg-delete-btn {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 20px;
+      height: 20px;
+      background: var(--error-color);
+      border: none;
+      border-radius: 50%;
+      color: white;
+      font-size: 14px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 5;
+    }
+
+    .message:hover .msg-delete-btn {
+      display: flex;
+    }
+
+    /* Input Bar */
+    .message-input-container {
+      padding: 15px 20px 30px;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(15px);
+      border-top: 1px solid var(--glass-border);
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+    }
+
+    .input-actions {
+      display: flex;
+      gap: 8px;
+      padding-bottom: 5px;
+    }
+
+    .action-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 1.1rem;
+    }
+
+    .action-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: var(--primary-color);
+      transform: translateY(-2px);
+    }
+
+    .main-input-wrapper {
+      flex: 1;
+      position: relative;
+    }
+
+    #messageInput {
+      width: 100%;
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      border-radius: 25px;
+      color: white;
+      font-size: 1rem;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    #messageInput:focus {
+      border-color: var(--primary-color);
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
+    }
+
+    #sendBtn {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      border: none;
+      color: #050510;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3);
+    }
+
+    #sendBtn:hover {
+      transform: scale(1.05) rotate(-10deg);
+      box-shadow: 0 6px 20px rgba(0, 242, 254, 0.5);
+    }
+
+    #sendBtn:active {
+      transform: scale(0.95);
+    }
+
+    /* Modal Tweaks */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(15px);
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      padding: 30px;
+      border-radius: 24px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .hidden { display: none !important; }
+
+    .placeholder-view {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 40px;
+    }
+
+    .placeholder-view i {
+      font-size: 4rem;
+      margin-bottom: 20px;
+      opacity: 0.2;
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="bg-overlay"></div>
+  
   <div class="app-container">
-    <div class="sidebar">
-      <div class="sidebar-header">
-        <span id="myUsername">Chat</span>
-        <div>
-          <a href="search.html" style="margin-right: 10px; font-size: 0.8em;">Search</a>
-          <a href="#" onclick="logout()" style="font-size: 0.8em; color: var(--error-color);">Logout</a>
-        </div>
-      </div>
-      <div class="user-list" id="sidebarList" style="padding: 10px; text-align: center; color: var(--text-muted);">
-        Use <a href="search.html">Search</a> to find users to chat with.
-      </div>
-    </div>
-    
+    <!-- Chat Area (Visible when user is selected) -->
     <div class="chat-area" id="chatArea" style="display: none;">
       <div class="chat-header">
-        <button id="backBtn" class="icon-btn">←</button>
-        <div id="chatTargetName" style="flex: 1; margin-left: 10px; font-weight: bold;">Chat</div>
+        <a href="search.html" class="back-btn" title="Back to Search">
+          <i class="fas fa-arrow-left"></i>
+        </a>
+        <div class="header-info">
+          <div class="header-avatar" id="headerAvatar">?</div>
+          <div class="header-user-name" id="chatTargetName">Chat</div>
+        </div>
+        <button onclick="logout()" class="back-btn" title="Logout" style="color: var(--error-color);">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
       </div>
       
       <div id="messagesContainer" class="messages-container"></div>
-      <div class="message-input" style="position: relative;">
-        <button type="button" id="emojiBtn" style="padding: 10px; border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; background: rgba(0,0,0,0.2); border: none;">😊</button>
-        <button type="button" id="photoBtn" style="padding: 10px; border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; background: rgba(0,0,0,0.2); border: none; margin-left: 5px;" title="Camera">📷</button>
-        <button type="button" id="galleryBtn" style="padding: 10px; border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; background: rgba(0,0,0,0.2); border: none; margin-left: 5px;" title="Gallery">🖼️</button>
-        <input type="file" id="fileInput" accept="image/*" style="display: none;">
-        <input type="text" id="messageInput" placeholder="Type a message...">
-        <button id="sendBtn">Send</button>
-        <emoji-picker id="emojiPicker" style="position: absolute; bottom: 85px; left: 20px; display: none; z-index: 1000; --background: var(--glass-bg); --border-color: var(--glass-border); --text-color: var(--text-color);"></emoji-picker>
+      
+      <div class="message-input-container">
+        <div class="input-actions">
+          <button type="button" id="emojiBtn" class="action-btn" title="Emojis">😊</button>
+          <button type="button" id="photoBtn" class="action-btn" title="Camera"><i class="fas fa-camera"></i></button>
+          <button type="button" id="galleryBtn" class="action-btn" title="Gallery"><i class="fas fa-image"></i></button>
+        </div>
+        
+        <div class="main-input-wrapper">
+          <input type="file" id="fileInput" accept="image/*" style="display: none;">
+          <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off">
+          <emoji-picker id="emojiPicker" style="position: absolute; bottom: 70px; left: 0; display: none; z-index: 1000; --background: var(--bg-dark); --border-color: var(--glass-border); --text-color: var(--text-color);"></emoji-picker>
+        </div>
+        
+        <button id="sendBtn">
+          <i class="fas fa-paper-plane"></i>
+        </button>
       </div>
     </div>
-    <div class="chat-area" id="placeholderArea" style="justify-content: center; align-items: center;">
-      <h3 style="color: var(--text-muted)">Select a user to start chatting</h3>
+
+    <!-- Placeholder View (Visible when no user is selected) -->
+    <div class="placeholder-view" id="placeholderArea">
+      <i class="fas fa-comments"></i>
+      <h3>Your Private Workspace</h3>
+      <p>Select a user from <a href="search.html" style="color: var(--primary-color);">Search</a> to start a clean, minimal conversation.</p>
     </div>
   </div>
 
   <div id="passwordModal" class="modal-overlay hidden">
     <div class="modal-content">
-      <h3 style="text-align: center; margin-bottom: 15px;">Verify Access</h3>
-      <p style="font-size: 0.9em; margin-bottom: 15px; color: var(--text-muted);">
-        Enter <span id="targetNameHighlight"></span>'s chat password to start conversation.
+      <h3 style="margin-bottom: 10px; color: var(--primary-color);">Verify Access</h3>
+      <p style="font-size: 0.9em; margin-bottom: 20px; color: var(--text-muted);">
+        Enter <b id="targetNameHighlight" style="color: white;"></b>'s password to decrypt the chat.
       </p>
-      <div id="modalErrorMsg" class="error-message"></div>
-      <input type="password" id="targetChatPassword" placeholder="Their Chat Password" style="margin-bottom: 15px;">
-      <button id="verifyBtn" style="width: 100%;">Verify</button>
+      <input type="password" id="targetChatPassword" placeholder="Chat Password" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.05); color: white; margin-bottom: 20px; outline: none; text-align: center; letter-spacing: 2px;">
+      <div id="modalErrorMsg" style="color: var(--error-color); font-size: 0.8rem; margin-top: -15px; margin-bottom: 15px; display: none;"></div>
+      <button id="verifyBtn" class="btn-primary" style="width: 100%;">Unlock Chat</button>
     </div>
   </div>
 

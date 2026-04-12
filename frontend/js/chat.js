@@ -59,17 +59,24 @@ const appendMessage = (msg, isSent) => {
   contentWrapper.className = 'message-content-wrapper';
 
   if (msg.imageUrl) {
+    const fullImageUrl = `${API_BASE_URL}${msg.imageUrl}`;
     const img = document.createElement('img');
-    img.src = `${API_BASE_URL}${msg.imageUrl}`;
+    img.src = fullImageUrl;
     img.loading = 'lazy';
-    img.style.maxWidth = '100%';
-    img.style.borderRadius = '8px';
-    img.style.marginTop = '5px';
-    img.style.cursor = 'pointer';
     img.onclick = () => window.open(img.src, '_blank');
     contentWrapper.appendChild(img);
+
+    const actions = document.createElement('div');
+    actions.className = 'image-actions';
+    actions.innerHTML = `
+      <a href="${fullImageUrl}" target="_blank" class="img-action-btn"><i class="fas fa-expand"></i> View</a>
+      <a href="${fullImageUrl}" download class="img-action-btn"><i class="fas fa-download"></i> Save</a>
+    `;
+    contentWrapper.appendChild(actions);
+
     if (msg.content) {
       const text = document.createElement('div');
+      text.style.marginTop = '10px';
       text.textContent = msg.content;
       contentWrapper.appendChild(text);
     }
@@ -81,8 +88,8 @@ const appendMessage = (msg, isSent) => {
 
   const delBtn = document.createElement('button');
   delBtn.className = 'msg-delete-btn';
-  delBtn.innerHTML = '×';
-  delBtn.title = 'Delete message';
+  delBtn.innerHTML = '<i class="fas fa-times"></i>';
+  delBtn.title = 'Delete';
   
   delBtn.onclick = async (e) => {
     e.stopPropagation();
@@ -117,7 +124,6 @@ const appendMessage = (msg, isSent) => {
   div.appendChild(statusDiv);
 
   if (!isSent) {
-    // If we received a message, mark it as seen
     socket.emit('mark_as_seen', {
       senderId: currentTargetId,
       readerId: user.id,
@@ -165,17 +171,10 @@ const openChat = () => {
   document.getElementById('placeholderArea').style.display = 'none';
   document.getElementById('chatArea').style.display = 'flex';
   document.getElementById('chatTargetName').textContent = targetName;
+  document.getElementById('headerAvatar').textContent = targetName.charAt(0).toUpperCase();
   currentRoomId = getRoomId(user.id, currentTargetId);
   socket.emit('join_room', currentRoomId);
   loadMessages();
-  
-  const sidebarList = document.getElementById('sidebarList');
-  sidebarList.innerHTML = `
-    <div class="user-item" style="background-color: rgba(255,255,255,0.1);">
-      <div class="avatar">${targetName.charAt(0).toUpperCase()}</div>
-      <div>${targetName}</div>
-    </div>
-  `;
 };
 
 if (currentTargetId && targetName) {
