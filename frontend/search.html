@@ -6,19 +6,298 @@
   <title>Search Users</title>
   <link rel="stylesheet" href="css/style.css?v=0.1.7">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Dark overlay for readability */
+    .bg-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: -1;
+    }
+
+    .search-app-container {
+      max-width: 600px;
+      width: 90%;
+      margin: 20px auto;
+      z-index: 10;
+      position: relative;
+    }
+
+    .search-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .search-title {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 0;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-icon {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border: 1px solid var(--glass-border);
+      background: var(--glass-bg);
+      color: white;
+    }
+
+    .btn-icon i {
+      font-size: 1.1rem;
+    }
+
+    .btn-chat {
+      color: var(--primary-color);
+      border-color: rgba(0, 242, 254, 0.3);
+    }
+    
+    .btn-chat:hover {
+      background: rgba(0, 242, 254, 0.1);
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .btn-logout {
+      color: var(--error-color);
+      border-color: rgba(255, 51, 102, 0.3);
+    }
+
+    .btn-logout:hover {
+      background: rgba(255, 51, 102, 0.1);
+      box-shadow: 0 0 15px rgba(255, 51, 102, 0.3);
+      transform: translateY(-2px);
+    }
+
+    /* Large Rounded Search Bar */
+    .search-bar-wrapper {
+      position: relative;
+      margin-bottom: 30px;
+      border-radius: 50px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(15px);
+      transition: all 0.4s ease;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .search-bar-wrapper:focus-within {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 25px rgba(0, 242, 254, 0.4);
+      transform: scale(1.02);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 25px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      transition: color 0.3s ease;
+    }
+
+    .search-bar-wrapper:focus-within .search-icon {
+      color: var(--primary-color);
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 20px 20px 20px 60px;
+      font-size: 1.1rem;
+      color: white;
+      background: transparent;
+      border: none;
+      outline: none;
+    }
+    
+    .search-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .search-glow {
+      position: absolute;
+      bottom: 0; left: 50%;
+      width: 0; height: 2px;
+      background: var(--primary-color);
+      transition: all 0.4s ease;
+      transform: translateX(-50%);
+    }
+
+    .search-bar-wrapper:focus-within .search-glow {
+      width: 100%;
+    }
+
+    /* User Cards Container */
+    .results-container {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 20px;
+      backdrop-filter: blur(15px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      min-height: 200px;
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .results-container.active {
+      display: block;
+    }
+
+    .section-title {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 15px;
+      margin-left: 10px;
+    }
+
+    /* User Cards */
+    .user-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid transparent;
+      border-radius: 15px;
+      margin-bottom: 10px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .user-card:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--glass-border);
+      transform: translateX(5px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .user-avatar {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #050510;
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
+    }
+
+    .user-name {
+      font-weight: 600;
+      font-size: 1.05rem;
+      color: white;
+    }
+
+    .btn-message {
+      background: rgba(0, 242, 254, 0.1);
+      color: var(--primary-color);
+      border: 1px solid rgba(0, 242, 254, 0.2);
+      border-radius: 50px;
+      padding: 8px 15px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.3s ease;
+    }
+
+    .user-card:hover .btn-message {
+      background: var(--primary-color);
+      color: #050510;
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+    }
+
+    .no-results {
+      text-align: center;
+      padding: 30px;
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    .no-results i {
+      font-size: 2rem;
+      margin-bottom: 15px;
+      opacity: 0.5;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
 <body>
-  <div class="container" style="max-width: 600px;">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <h2>Find Users</h2>
-      <div>
-        <a href="chat.html" style="margin-right: 15px;">Go to Chat</a>
-        <a href="#" onclick="logout()" style="color: var(--error-color);">Logout</a>
+  <div class="bg-overlay"></div>
+
+  <div class="search-app-container">
+    <div class="search-header">
+      <h2 class="search-title">Discover</h2>
+      <div class="action-buttons">
+        <a href="chat.html" class="btn-icon btn-chat">
+          <i class="far fa-comment-dots"></i> <span>Chat</span>
+        </a>
+        <button onclick="logout()" class="btn-icon btn-logout">
+          <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+        </button>
       </div>
     </div>
     
-    <input type="text" id="searchInput" placeholder="Search by username..." style="margin-bottom: 20px;">
-    <div id="searchResults" class="user-list"></div>
+    <div class="search-bar-wrapper">
+      <i class="fas fa-search search-icon"></i>
+      <input type="text" id="searchInput" class="search-input" placeholder="Search by username..." autocomplete="off">
+      <div class="search-glow"></div>
+    </div>
+
+    <!-- Suggested Users Area -->
+    <div id="suggestedArea" class="results-container active">
+      <div class="section-title">Suggested Users</div>
+      <div id="suggestedList">
+        <div class="no-results">
+          <i class="fas fa-spinner fa-spin"></i>
+          <div>Loading suggestions...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search Results Area -->
+    <div id="resultsArea" class="results-container">
+      <div class="section-title">Search Results</div>
+      <div id="searchResults"></div>
+    </div>
   </div>
 
   <script src="js/api.js?v=0.1.3"></script>
@@ -27,33 +306,113 @@
       window.location.href = 'index.html';
     }
 
-    let searchTimeout;
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-      clearTimeout(searchTimeout);
-      const query = e.target.value.trim();
-      searchTimeout = setTimeout(async () => {
-        if (!query) {
-          document.getElementById('searchResults').innerHTML = '';
+    // Function to render user cards
+    function createUserCard(user) {
+      const div = document.createElement('div');
+      div.className = 'user-card';
+      div.innerHTML = `
+        <div class="user-info">
+          <div class="user-avatar">${user.username.charAt(0).toUpperCase()}</div>
+          <div class="user-name">${user.username}</div>
+        </div>
+        <button class="btn-message">
+          <i class="fas fa-paper-plane"></i> Message
+        </button>
+      `;
+      div.onclick = () => {
+        window.location.href = `chat.html?target=${user._id}&name=${encodeURIComponent(user.username)}`;
+      };
+      return div;
+    }
+
+    // Load suggested users on startup
+    async function loadSuggestedUsers() {
+      try {
+        // Querying a common character to fetch some user suggestions
+        const query = 'a'; 
+        const users = await fetchAPI(`/search-users?query=${encodeURIComponent(query)}`);
+        const suggestedList = document.getElementById('suggestedList');
+        suggestedList.innerHTML = '';
+        
+        // Take up to 4 users for suggestions
+        const suggestions = users.slice(0, 4);
+        
+        if (suggestions.length === 0) {
+          suggestedList.innerHTML = `
+            <div class="no-results">
+              <i class="fas fa-user-friends"></i>
+              <div>No suggestions available right now.</div>
+            </div>`;
           return;
         }
+
+        suggestions.forEach(user => {
+          suggestedList.appendChild(createUserCard(user));
+        });
+      } catch (err) {
+        console.error(err);
+        document.getElementById('suggestedList').innerHTML = `
+          <div class="no-results" style="color: var(--error-color);">
+            <i class="fas fa-exclamation-circle"></i>
+            <div>Failed to load suggestions.</div>
+          </div>`;
+      }
+    }
+
+    // Initialize suggestions
+    loadSuggestedUsers();
+
+    let searchTimeout;
+    const searchInput = document.getElementById('searchInput');
+    const suggestedArea = document.getElementById('suggestedArea');
+    const resultsArea = document.getElementById('resultsArea');
+    const searchResults = document.getElementById('searchResults');
+
+    searchInput.addEventListener('input', (e) => {
+      clearTimeout(searchTimeout);
+      const query = e.target.value.trim();
+      
+      if (!query) {
+        // Show suggestions, hide results
+        suggestedArea.classList.add('active');
+        resultsArea.classList.remove('active');
+        searchResults.innerHTML = '';
+        return;
+      }
+
+      searchTimeout = setTimeout(async () => {
         try {
+          // Show results, hide suggestions
+          suggestedArea.classList.remove('active');
+          resultsArea.classList.add('active');
+          searchResults.innerHTML = `
+            <div class="no-results">
+              <i class="fas fa-spinner fa-spin"></i>
+              <div>Searching...</div>
+            </div>`;
+          
           const users = await fetchAPI(`/search-users?query=${encodeURIComponent(query)}`);
-          const resultsDiv = document.getElementById('searchResults');
-          resultsDiv.innerHTML = '';
+          searchResults.innerHTML = '';
+          
+          if (users.length === 0) {
+             searchResults.innerHTML = `
+              <div class="no-results">
+                <i class="fas fa-search-minus"></i>
+                <div>No users found for "${query}"</div>
+              </div>`;
+             return;
+          }
+
           users.forEach(user => {
-            const div = document.createElement('div');
-            div.className = 'user-item';
-            div.innerHTML = `
-              <div class="avatar">${user.username.charAt(0).toUpperCase()}</div>
-              <div>${user.username}</div>
-            `;
-            div.onclick = () => {
-              window.location.href = `chat.html?target=${user._id}&name=${encodeURIComponent(user.username)}`;
-            };
-            resultsDiv.appendChild(div);
+            searchResults.appendChild(createUserCard(user));
           });
         } catch (err) {
           console.error(err);
+          searchResults.innerHTML = `
+            <div class="no-results" style="color: var(--error-color);">
+              <i class="fas fa-exclamation-triangle"></i>
+              <div>An error occurred during search.</div>
+            </div>`;
         }
       }, 300);
     });
