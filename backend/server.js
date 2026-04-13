@@ -12,6 +12,34 @@ const userRoutes = require('./routes/userRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 
 const Message = require('./models/Message');
+const cron = require('node-cron');
+
+// Cleanup Cron Job - Runs every minute
+cron.schedule('* * * * *', async () => {
+  try {
+    const now = new Date();
+    const expiredMessages = await Message.find({ expiresAt: { $lte: now } });
+
+    if (expiredMessages.length > 0) {
+      console.log(`Broom Service: Cleaning up ${expiredMessages.length} expired messages...`);
+      
+      for (const msg of expiredMessages) {
+        const roomId = [msg.senderId.toString(), msg.receiverId.toString()].sort().join('_');
+        io.to(roomId).emit('message_deleted', msg._id);
+        
+        if (msg.imageUrl) {
+          const fileName = path.basename(msg.imageUrl);
+          const filePath = path.join(__dirname, 'uploads', fileName);
+          const fs = require('fs');
+          if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        }
+        await Message.findByIdAndDelete(msg._id);
+      }
+    }
+  } catch (err) {
+    console.error('Expiration Cron Error:', err);
+  }
+});
 
 const app = express();
 const server = http.createServer(app);

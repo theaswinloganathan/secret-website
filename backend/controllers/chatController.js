@@ -59,10 +59,21 @@ exports.getMessages = async (req, res) => {
 
 exports.saveMessage = async (req, res) => {
   try {
-    const { receiverId, content, imageUrl } = req.body;
+    const { receiverId, content, imageUrl, duration } = req.body;
     const senderId = req.user.userId;
 
-    const newMessage = new Message({ senderId, receiverId, content, imageUrl });
+    let expiresAt = null;
+    if (duration && !isNaN(duration)) {
+      expiresAt = new Date(Date.now() + parseInt(duration) * 60 * 60 * 1000);
+    }
+
+    const newMessage = new Message({ 
+      senderId, 
+      receiverId, 
+      content, 
+      imageUrl,
+      expiresAt 
+    });
     await newMessage.save();
 
     res.status(201).json(newMessage);

@@ -19,6 +19,7 @@ const targetName = urlParams.get('name');
 let currentTargetId = targetId;
 let currentChatToken = null;
 let currentRoomId = null;
+let selectedDuration = 0; // 0 = Off
 
 const getRoomId = (id1, id2) => [id1, id2].sort().join('_');
 
@@ -127,6 +128,13 @@ const appendMessage = (msg, isSent) => {
   }
   div.appendChild(statusDiv);
 
+  if (msg.expiresAt) {
+    const expiry = document.createElement('div');
+    expiry.className = 'expiry-indicator';
+    expiry.innerHTML = `<i class="fas fa-history"></i> Disappearing`;
+    div.appendChild(expiry);
+  }
+
   if (!isSent) {
     socket.emit('mark_as_seen', {
       senderId: currentTargetId,
@@ -216,7 +224,11 @@ document.getElementById('sendBtn').addEventListener('click', async () => {
     const msg = await fetchAPI('/messages', {
       method: 'POST',
       headers: { 'X-Chat-Token': currentChatToken },
-      body: JSON.stringify({ receiverId: currentTargetId, content })
+      body: JSON.stringify({ 
+        receiverId: currentTargetId, 
+        content,
+        duration: selectedDuration > 0 ? selectedDuration : undefined
+      })
     });
     
     // Replace temp message with real one in DOM
@@ -300,7 +312,12 @@ if (photoBtn && fileInput) {
       const msg = await fetchAPI('/messages', {
         method: 'POST',
         headers: { 'X-Chat-Token': currentChatToken },
-        body: JSON.stringify({ receiverId: currentTargetId, imageUrl: uploadData.imageUrl, content: '' })
+        body: JSON.stringify({ 
+          receiverId: currentTargetId, 
+          imageUrl: uploadData.imageUrl, 
+          content: '',
+          duration: selectedDuration > 0 ? selectedDuration : undefined
+        })
       });
 
       socket.emit('send_message', { roomId: currentRoomId, message: msg });
@@ -334,5 +351,36 @@ if (emojiBtn && emojiPicker) {
     if (!emojiBtn.contains(e.target) && !emojiPicker.contains(e.target)) {
       emojiPicker.style.display = 'none';
     }
+  });
+}
+
+// Timer Dropdown Logic
+const timerBtn = document.getElementById('timerBtn');
+const timerDropdown = document.getElementById('timerDropdown');
+
+if (timerBtn && timerDropdown) {
+  timerBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    timerDropdown.style.display = timerDropdown.style.display === 'none' ? 'block' : 'none';
+  });
+
+  document.querySelectorAll('.timer-option').forEach(option => {
+    option.addEventListener('click', () => {
+      document.querySelectorAll('.timer-option').forEach(opt => opt.classList.remove('active'));
+      option.classList.add('active');
+      selectedDuration = parseInt(option.dataset.value);
+      
+      if (selectedDuration > 0) {
+        timerBtn.classList.add('timer-active');
+      } else {
+        timerBtn.classList.remove('timer-active');
+      }
+      
+      timerDropdown.style.display = 'none';
+    });
+  });
+
+  document.addEventListener('click', () => {
+    timerDropdown.style.display = 'none';
   });
 }

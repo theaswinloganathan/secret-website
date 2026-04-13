@@ -346,3 +346,63 @@ input:not(:-webkit-autofill) {
 .message { max-width: 75%; padding: 14px 20px; border-radius: 20px; font-size: 0.95rem; }
 .message.sent { align-self: flex-end; background: rgba(0, 242, 254, 0.15); border: 1px solid rgba(0, 242, 254, 0.2); }
 .message.received { align-self: flex-start; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); }
+
+/* Disappearing Messages Styles */
+.timer-picker-container {
+  position: relative;
+}
+
+.timer-dropdown {
+  position: absolute;
+  bottom: 60px;
+  right: 0;
+  background: var(--glass-bg);
+  backdrop-filter: blur(25px);
+  border: 1px solid var(--glass-border);
+  border-radius: 15px;
+  padding: 10px;
+  display: none;
+  z-index: 1001;
+  width: 150px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.timer-option {
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.2s;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.timer-option:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--primary-color);
+}
+
+.timer-option.active {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.expiry-indicator {
+  font-size: 10px;
+  opacity: 0.6;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.message.sent .expiry-indicator {
+  justify-content: flex-end;
+}
+
+.action-btn.timer-active {
+  color: var(--primary-color);
+  box-shadow: 0 0 10px var(--primary-color);
+  border-color: var(--primary-color);
+}

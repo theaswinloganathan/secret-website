@@ -21,6 +21,9 @@ const MessageSchema = new mongoose.Schema({
     type: String,
     enum: ['sent', 'delivered', 'seen'],
     default: 'sent'
+  },
+  expiresAt: {
+    type: Date
   }
 }, { timestamps: true });
 
