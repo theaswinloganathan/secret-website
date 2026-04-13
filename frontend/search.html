@@ -545,7 +545,7 @@
         
         setTimeout(() => {
           window.location.href = `chat.html?target=${selectedUser._id}&name=${encodeURIComponent(selectedUser.username)}`;
-        }, 500);
+        }, 50);
 
       } catch (err) {
         console.error(err);
@@ -708,7 +708,7 @@
               <div>An error occurred during search.</div>
             </div>`;
         }
-      }, 300);
+      }, 150);
     }
   </script>
 </body>

@@ -105,7 +105,7 @@
         localStorage.setItem('user', JSON.stringify(data.user));
         
         card.classList.add('fade-out');
-        setTimeout(() => window.location.href = 'search.html', 400);
+        setTimeout(() => window.location.href = 'search.html', 50);
       } catch (err) {
         errorMsg.textContent = err.message;
         errorMsg.style.display = 'block';

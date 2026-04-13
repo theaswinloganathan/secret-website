@@ -15,7 +15,7 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: 'Username already exists' });
     }
 
-    const saltRounds = 12;
+    const saltRounds = 10;
     const hashedLoginPassword = await bcrypt.hash(loginPassword, saltRounds);
     const hashedChatPassword = await bcrypt.hash(chatPassword, saltRounds);
 
