@@ -54,6 +54,19 @@ socket.on('system_notification', (data) => {
   container.scrollTop = container.scrollHeight;
 });
 
+socket.on('user_status', (data) => {
+  if (data.userId === currentTargetId) {
+    const headerAvatar = document.getElementById('headerAvatar');
+    if (data.status === 'online') {
+      headerAvatar.style.border = '2px solid var(--success-color)';
+      headerAvatar.title = 'Online';
+    } else {
+      headerAvatar.style.border = '1px solid var(--glass-border)';
+      headerAvatar.title = 'Offline';
+    }
+  }
+});
+
 socket.on('user_typing', (data) => {
   if (data.userId === currentTargetId) {
     const headerInfo = document.querySelector('.header-info');

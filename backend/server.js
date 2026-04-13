@@ -73,10 +73,17 @@ const connectedUsers = new Map();
 
 io.on('connection', (socket) => {
   socket.on('register', async (userId) => {
+    socket.userId = userId;
     connectedUsers.set(userId, socket.id);
+    
     const user = await User.findById(userId);
-    if (user && !user.ghostMode) {
-      io.emit('user_status', { userId, status: 'online' });
+    if (user) {
+      socket.ghostMode = user.ghostMode;
+      // Emit offline if in ghost mode, online otherwise
+      io.emit('user_status', { 
+        userId, 
+        status: user.ghostMode ? 'offline' : 'online' 
+      });
     }
   });
 
@@ -84,15 +91,16 @@ io.on('connection', (socket) => {
     socket.join(roomId);
   });
 
-  socket.on('typing', async (data) => {
-    const user = await User.findById(data.userId);
-    if (user && !user.ghostMode) {
+  socket.on('typing', (data) => {
+    // Use socket.ghostMode for performance
+    if (!socket.ghostMode) {
       socket.to(data.roomId).emit('user_typing', { userId: data.userId, typing: data.typing });
     }
   });
 
   socket.on('screenshot_taken', async (data) => {
     const { userId, username, roomId } = data;
+    // Notify EVERYONE in the room, including sender
     io.to(roomId).emit('system_notification', { 
       type: 'screenshot', 
       content: `${username} took a screenshot`,
@@ -117,8 +125,7 @@ io.on('connection', (socket) => {
       { status: 'seen' }
     );
     
-    const reader = await User.findById(readerId);
-    if (reader && !reader.ghostMode) {
+    if (!socket.ghostMode) {
       io.to(roomId).emit('message_status_update', { senderId, readerId, status: 'seen' });
     }
   });
@@ -128,14 +135,11 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', async () => {
-    for (const [userId, socketId] of connectedUsers.entries()) {
-      if (socketId === socket.id) {
-        connectedUsers.delete(userId);
-        const user = await User.findByIdAndUpdate(userId, { lastSeen: new Date() }, { new: true });
-        if (user && !user.ghostMode) {
-          io.emit('user_status', { userId, status: 'offline' });
-        }
-        break;
+    if (socket.userId) {
+      connectedUsers.delete(socket.userId);
+      await User.findByIdAndUpdate(socket.userId, { lastSeen: new Date() });
+      if (!socket.ghostMode) {
+        io.emit('user_status', { userId: socket.userId, status: 'offline' });
       }
     }
   });
