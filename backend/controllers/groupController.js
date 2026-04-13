@@ -40,7 +40,8 @@ exports.joinGroup = async (req, res) => {
     const isMatch = await bcrypt.compare(groupKey, group.groupKey);
     if (!isMatch) return res.status(401).json({ message: 'Invalid group secret key' });
 
-    if (group.members.includes(userId)) {
+    const isAlreadyMember = group.members.some(m => m.toString() === userId.toString());
+    if (isAlreadyMember) {
       return res.status(400).json({ message: 'You are already a member of this group' });
     }
 
@@ -92,8 +93,8 @@ exports.getGroupMessages = async (req, res) => {
     const groupId = req.params.groupId;
     const userId = req.user.userId;
 
-    const group = await Group.findById(groupId);
-    if (!group || !group.members.includes(userId)) {
+    const isMember = group && group.members.some(m => m.toString() === userId.toString());
+    if (!isMember) {
       return res.status(403).json({ message: 'Unauthorized: Access denied' });
     }
 
