@@ -57,10 +57,20 @@ exports.getMessages = async (req, res) => {
   }
 };
 
+const Group = require('../models/Group');
+
 exports.saveMessage = async (req, res) => {
   try {
     const { receiverId, groupId, content, imageUrl, duration } = req.body;
     const senderId = req.user.userId;
+
+    // Security check for group messages
+    if (groupId) {
+      const group = await Group.findById(groupId);
+      if (!group || !group.members.includes(senderId)) {
+        return res.status(403).json({ message: 'Not a member of this group' });
+      }
+    }
 
     let expiresAt = null;
     if (duration && !isNaN(duration)) {
