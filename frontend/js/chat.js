@@ -135,7 +135,6 @@ const appendMessage = (msg, isSent) => {
   container.scrollTop = container.scrollHeight;
 };
 
-// No modal in chat.html anymore
 const showModal = () => {
   window.location.href = 'search.html';
 };
@@ -239,7 +238,7 @@ document.getElementById('sendBtn').addEventListener('click', async () => {
   }
 });
 
-document.getElementById('messageInput').addEventListener('keypress', (e) => {
+document.getElementById('messageInput').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') {
     document.getElementById('sendBtn').click();
   }

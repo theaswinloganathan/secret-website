@@ -29,7 +29,7 @@
       <!-- Step 1: Username -->
       <div class="signup-step active" id="step1">
         <div class="input-group">
-          <input type="text" id="username" placeholder=" " required>
+          <input type="text" id="username" placeholder=" " required onkeydown="if(event.key==='Enter') goToStep(2)">
           <label>Unique Username</label>
           <div class="input-focus-glow"></div>
         </div>
@@ -39,7 +39,7 @@
       <!-- Step 2: Login Password -->
       <div class="signup-step" id="step2">
         <div class="input-group">
-          <input type="password" id="loginPassword" placeholder=" " required>
+          <input type="password" id="loginPassword" placeholder=" " required onkeydown="if(event.key==='Enter') goToStep(3)">
           <label>Master Password</label>
           <span class="password-toggle" onclick="togglePass('loginPassword', this)">👁️</span>
           <div class="input-focus-glow"></div>

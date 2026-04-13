@@ -559,7 +559,7 @@
     });
 
     // Handle Enter key in modal
-    modalPassword.addEventListener('keypress', (e) => {
+    modalPassword.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') confirmVerify.click();
     });
 
@@ -684,6 +684,20 @@
           users.forEach(user => {
             searchResults.appendChild(createUserCard(user));
           });
+
+          // Handle Enter key to pick the first result
+          const enterHandler = (e) => {
+            if (e.key === 'Enter' && users.length > 0) {
+              openVerificationModal(users[0]);
+              searchInput.removeEventListener('keydown', enterHandler);
+            }
+          };
+          
+          // Remove old listener if any and add new one
+          searchInput.removeEventListener('keydown', searchInput._enterHandler);
+          searchInput._enterHandler = enterHandler;
+          searchInput.addEventListener('keydown', searchInput._enterHandler);
+
         } catch (err) {
           console.error(err);
           searchIcon.classList.remove('fa-spinner', 'fa-spin');
