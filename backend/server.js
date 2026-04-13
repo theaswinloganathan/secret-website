@@ -10,6 +10,7 @@ const { Server } = require('socket.io');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const groupRoutes = require('./routes/groupRoutes');
 
 const Message = require('./models/Message');
 const User = require('./models/User');
@@ -68,6 +69,7 @@ app.get('/', (req, res) => {
 app.use('/api', authRoutes);
 app.use('/api', userRoutes);
 app.use('/api', chatRoutes);
+app.use('/api/groups', groupRoutes);
 
 const connectedUsers = new Map();
 
@@ -109,11 +111,13 @@ io.on('connection', (socket) => {
   });
 
   socket.on('send_message', async (data) => {
-    // Check if recipient is online to set delivered status
-    const isOnline = connectedUsers.has(data.message.receiverId);
-    if (isOnline && data.message.status !== 'seen') {
-      data.message.status = 'delivered';
-      await Message.findByIdAndUpdate(data.message._id, { status: 'delivered' });
+    // If it's a 1-to-1 message, check delivered status
+    if (data.message.receiverId) {
+      const isOnline = connectedUsers.has(data.message.receiverId);
+      if (isOnline && data.message.status !== 'seen') {
+        data.message.status = 'delivered';
+        await Message.findByIdAndUpdate(data.message._id, { status: 'delivered' });
+      }
     }
     io.to(data.roomId).emit('receive_message', data.message);
   });

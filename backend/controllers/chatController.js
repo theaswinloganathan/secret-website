@@ -59,7 +59,7 @@ exports.getMessages = async (req, res) => {
 
 exports.saveMessage = async (req, res) => {
   try {
-    const { receiverId, content, imageUrl, duration } = req.body;
+    const { receiverId, groupId, content, imageUrl, duration } = req.body;
     const senderId = req.user.userId;
 
     let expiresAt = null;
@@ -69,7 +69,8 @@ exports.saveMessage = async (req, res) => {
 
     const newMessage = new Message({ 
       senderId, 
-      receiverId, 
+      receiverId: groupId ? undefined : receiverId, 
+      groupId: groupId || undefined,
       content, 
       imageUrl,
       expiresAt 

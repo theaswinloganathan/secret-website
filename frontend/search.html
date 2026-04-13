@@ -431,9 +431,12 @@
     <div class="search-header">
       <h2 class="search-title">Discover</h2>
       <div class="action-buttons">
-        <a href="chat.html" class="btn-icon btn-chat">
-          <i class="far fa-comment-dots"></i> <span>Chat</span>
-        </a>
+        <button id="showCreateGroup" class="btn-icon btn-chat" title="Create Group">
+          <i class="fas fa-plus-circle"></i> <span>Create Group</span>
+        </button>
+        <button id="showJoinGroup" class="btn-icon btn-chat" title="Join Group" style="color: var(--secondary-color); border-color: var(--secondary-color);">
+          <i class="fas fa-sign-in-alt"></i> <span>Join Group</span>
+        </button>
         <button onclick="logout()" class="btn-icon btn-logout">
           <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
         </button>
@@ -447,16 +450,64 @@
       <div class="search-glow"></div>
     </div>
 
-    <!-- Suggested Users Area -->
-    <div id="suggestedArea" class="results-container active">
-      <div class="section-title">Suggested Users</div>
-      <div id="suggestedList">
+    <!-- Group Chat Section -->
+    <div class="search-section">
+      <h3 class="section-title"><i class="fas fa-users"></i> My Groups</h3>
+      <div id="groupsList" class="users-list">
+        <!-- Groups will be loaded here -->
         <div class="no-results">
-          <i class="fas fa-spinner fa-spin"></i>
-          <div>Loading suggestions...</div>
+          <i class="fas fa-layer-group"></i>
+          <div>Loading your groups...</div>
         </div>
       </div>
     </div>
+
+    <!-- Suggested Users Section -->
+    <div class="search-section">
+      <h3 class="section-title"><i class="fas fa-fire"></i> Global Users</h3>
+      <div id="suggestedList" class="users-list">
+        <!-- Other users will be loaded here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Group Modal -->
+  <div id="createGroupModal" class="modal-overlay">
+    <div class="modal">
+      <h2 class="modal-title">Create Private Group</h2>
+      <div class="form-group">
+        <label>Group Name</label>
+        <input type="text" id="groupName" placeholder="Enter group name...">
+      </div>
+      <div class="form-group">
+        <label>Secret Key</label>
+        <input type="password" id="createGroupKey" placeholder="Set a group access key...">
+      </div>
+      <div class="modal-actions">
+        <button id="cancelCreate" class="btn-cancel">Cancel</button>
+        <button id="confirmCreate" class="btn-confirm">Create Group</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Join Group Modal -->
+  <div id="joinGroupModal" class="modal-overlay">
+    <div class="modal">
+      <h2 class="modal-title">Join Existing Group</h2>
+      <div class="form-group">
+        <label>Group Name</label>
+        <input type="text" id="joinGroupName" placeholder="Enter target group name...">
+      </div>
+      <div class="form-group">
+        <label>Secret Key</label>
+        <input type="password" id="joinGroupKey" placeholder="Enter the group's secret key...">
+      </div>
+      <div class="modal-actions">
+        <button id="cancelJoin" class="btn-cancel">Cancel</button>
+        <button id="confirmJoin" class="btn-confirm">Join Group</button>
+      </div>
+    </div>
+  </div>
 
     <!-- Search Results Area -->
     <div id="resultsArea" class="results-container">
@@ -492,6 +543,7 @@
       window.location.href = 'index.html';
     }
 
+    const user = JSON.parse(localStorage.getItem('user'));
     let selectedUser = null;
 
     // Modal Elements
@@ -502,9 +554,55 @@
     const confirmVerify = document.getElementById('confirmVerify');
     const cancelVerify = document.getElementById('cancelVerify');
 
-    function openVerificationModal(user) {
-      selectedUser = user;
-      modalTargetName.textContent = user.username;
+    // Group Modal Elements
+    const createGroupModal = document.getElementById('createGroupModal');
+    const joinGroupModal = document.getElementById('joinGroupModal');
+    const showCreateGroup = document.getElementById('showCreateGroup');
+    const showJoinGroup = document.getElementById('showJoinGroup');
+
+    // Toggle Modals
+    showCreateGroup.onclick = () => createGroupModal.classList.add('active');
+    document.getElementById('cancelCreate').onclick = () => createGroupModal.classList.remove('active');
+    showJoinGroup.onclick = () => joinGroupModal.classList.add('active');
+    document.getElementById('cancelJoin').onclick = () => joinGroupModal.classList.remove('active');
+
+    // Create Group Logic
+    document.getElementById('confirmCreate').onclick = async () => {
+      const name = document.getElementById('groupName').value.trim();
+      const groupKey = document.getElementById('createGroupKey').value.trim();
+      if (!name || !groupKey) return alert('Fill all fields');
+
+      try {
+        await fetchAPI('/groups', {
+          method: 'POST',
+          body: JSON.stringify({ name, groupKey })
+        });
+        location.reload();
+      } catch (err) {
+        alert(err.message);
+      }
+    };
+
+    // Join Group Logic
+    document.getElementById('confirmJoin').onclick = async () => {
+      const name = document.getElementById('joinGroupName').value.trim();
+      const groupKey = document.getElementById('joinGroupKey').value.trim();
+      if (!name || !groupKey) return alert('Fill all fields');
+
+      try {
+        await fetchAPI('/groups/join', {
+          method: 'POST',
+          body: JSON.stringify({ name, groupKey })
+        });
+        location.reload();
+      } catch (err) {
+        alert(err.message);
+      }
+    };
+
+    function openVerificationModal(targetUser) {
+      selectedUser = targetUser;
+      modalTargetName.textContent = targetUser.username;
       modalPassword.value = '';
       modalError.style.display = 'none';
       verificationModal.classList.add('active');
@@ -524,192 +622,97 @@
 
       try {
         confirmVerify.disabled = true;
-        confirmVerify.querySelector('span').textContent = 'Verifying...';
-        confirmVerify.querySelector('i').className = 'fas fa-spinner fa-spin';
-        modalError.style.display = 'none';
-
         const data = await fetchAPI('/verify-chat-password', {
           method: 'POST',
-          body: JSON.stringify({ 
-            targetUserId: selectedUser._id, 
-            chatPassword: password 
-          })
+          body: JSON.stringify({ targetUserId: selectedUser._id, chatPassword: password })
         });
-
-        // Save token to sessionStorage so chat.html can use it immediately
         sessionStorage.setItem(`chatToken_${selectedUser._id}`, data.chatToken);
-        
-        // Success animation or direct navigation
-        confirmVerify.querySelector('i').className = 'fas fa-check-circle';
-        confirmVerify.querySelector('span').textContent = 'Verified!';
-        
-        setTimeout(() => {
-          window.location.href = `chat.html?target=${selectedUser._id}&name=${encodeURIComponent(selectedUser.username)}`;
-        }, 50);
-
+        window.location.href = `chat.html?target=${selectedUser._id}&name=${encodeURIComponent(selectedUser.username)}`;
       } catch (err) {
-        console.error(err);
-        modalError.textContent = err.message || 'Verification failed. Try again.';
+        modalError.textContent = err.message || 'Verification failed';
         modalError.style.display = 'block';
-        confirmVerify.querySelector('i').className = 'fas fa-shield-alt';
-        confirmVerify.querySelector('span').textContent = 'Verify';
       } finally {
         confirmVerify.disabled = false;
       }
     });
 
-    // Handle Enter key in modal
-    modalPassword.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') confirmVerify.click();
-    });
+    function createGroupCard(group) {
+      const div = document.createElement('div');
+      div.className = 'group-card';
+      div.innerHTML = `
+        <div class="group-info">
+          <div class="group-avatar">${group.name.charAt(0).toUpperCase()}</div>
+          <div>
+            <div class="group-name">${group.name}</div>
+            <div class="group-members">${group.members.length} members</div>
+          </div>
+        </div>
+        <button class="btn-join">
+          <i class="fas fa-comments"></i> Enter
+        </button>
+      `;
+      div.onclick = () => {
+        window.location.href = `chat.html?groupId=${group._id}&name=${encodeURIComponent(group.name)}`;
+      };
+      return div;
+    }
 
-    // Function to render user cards
-    function createUserCard(user) {
+    function createUserCard(targetUser) {
       const div = document.createElement('div');
       div.className = 'user-card';
       div.innerHTML = `
         <div class="user-info">
-          <div class="user-avatar">${user.username.charAt(0).toUpperCase()}</div>
-          <div class="user-name">${user.username}</div>
+          <div class="user-avatar">${targetUser.username.charAt(0).toUpperCase()}</div>
+          <div class="user-name">${targetUser.username}</div>
         </div>
         <button class="btn-message">
           <i class="fas fa-paper-plane"></i> Message
         </button>
       `;
-      div.onclick = () => {
-        openVerificationModal(user);
-      };
+      div.onclick = () => openVerificationModal(targetUser);
       return div;
     }
 
-    // Load suggested users on startup
-    async function loadSuggestedUsers() {
+    async function loadContent() {
       try {
-        // Querying a common character to fetch some user suggestions
-        const query = 'a'; 
-        const users = await fetchAPI(`/search-users?query=${encodeURIComponent(query)}`);
-        const suggestedList = document.getElementById('suggestedList');
-        suggestedList.innerHTML = '';
-        
-        // Take up to 4 users for suggestions
-        const suggestions = users.slice(0, 4);
-        
-        if (suggestions.length === 0) {
-          suggestedList.innerHTML = `
-            <div class="no-results">
-              <i class="fas fa-user-friends"></i>
-              <div>No suggestions available right now.</div>
-            </div>`;
-          return;
+        // Load Groups
+        const groupsList = document.getElementById('groupsList');
+        const groups = await fetchAPI('/groups');
+        groupsList.innerHTML = '';
+        if (groups.length === 0) {
+          groupsList.innerHTML = '<div class="no-results">No groups joined yet.</div>';
+        } else {
+          groups.forEach(g => groupsList.appendChild(createGroupCard(g)));
         }
 
-        suggestions.forEach(user => {
-          suggestedList.appendChild(createUserCard(user));
-        });
+        // Load Suggestions
+        const users = await fetchAPI('/search-users?query=a');
+        const suggestedList = document.getElementById('suggestedList');
+        suggestedList.innerHTML = '';
+        users.slice(0, 6).forEach(u => suggestedList.appendChild(createUserCard(u)));
       } catch (err) {
         console.error(err);
-        document.getElementById('suggestedList').innerHTML = `
-          <div class="no-results" style="color: var(--error-color);">
-            <i class="fas fa-exclamation-circle"></i>
-            <div>Failed to load suggestions.</div>
-          </div>`;
       }
     }
 
-    // Initialize suggestions
-    loadSuggestedUsers();
+    loadContent();
 
-    let searchTimeout;
+    // Search Logic (Simplified)
     const searchInput = document.getElementById('searchInput');
-    const searchClear = document.getElementById('searchClear');
-    const searchIcon = document.getElementById('searchIcon');
-    const suggestedArea = document.getElementById('suggestedArea');
     const resultsArea = document.getElementById('resultsArea');
     const searchResults = document.getElementById('searchResults');
 
-    searchClear.addEventListener('click', () => {
-      searchInput.value = '';
-      searchInput.focus();
-      triggerSearch('');
-    });
-
-    searchInput.addEventListener('input', (e) => {
-      triggerSearch(e.target.value.trim());
-    });
-
-    function triggerSearch(query) {
-      clearTimeout(searchTimeout);
-      
+    searchInput.addEventListener('input', async (e) => {
+      const query = e.target.value.trim();
       if (!query) {
-        searchClear.style.display = 'none';
-        searchIcon.classList.remove('fa-spin', 'fa-spinner');
-        searchIcon.classList.add('fa-search');
-        // Show suggestions, hide results
-        suggestedArea.classList.add('active');
         resultsArea.classList.remove('active');
-        searchResults.innerHTML = '';
         return;
       }
-
-      searchClear.style.display = 'block';
-
-      searchTimeout = setTimeout(async () => {
-        try {
-          // Show results, hide suggestions
-          suggestedArea.classList.remove('active');
-          resultsArea.classList.add('active');
-          
-          // Switch icon to spinner while searching
-          searchIcon.classList.remove('fa-search');
-          searchIcon.classList.add('fa-spinner', 'fa-spin');
-
-          const users = await fetchAPI(`/search-users?query=${encodeURIComponent(query)}`);
-          
-          // Switch icon back
-          searchIcon.classList.remove('fa-spinner', 'fa-spin');
-          searchIcon.classList.add('fa-search');
-
-          searchResults.innerHTML = '';
-          
-          if (users.length === 0) {
-             searchResults.innerHTML = `
-              <div class="no-results">
-                <i class="fas fa-search-minus" style="font-size: 3rem; display: block; margin-bottom: 20px;"></i>
-                <div style="font-size: 1.2rem; font-weight: 600;">No users found</div>
-                <div style="color: var(--text-muted); margin-top: 5px;">Try searching for someone else</div>
-              </div>`;
-             return;
-          }
-
-          users.forEach(user => {
-            searchResults.appendChild(createUserCard(user));
-          });
-
-          // Handle Enter key to pick the first result
-          const enterHandler = (e) => {
-            if (e.key === 'Enter' && users.length > 0) {
-              openVerificationModal(users[0]);
-              searchInput.removeEventListener('keydown', enterHandler);
-            }
-          };
-          
-          // Remove old listener if any and add new one
-          searchInput.removeEventListener('keydown', searchInput._enterHandler);
-          searchInput._enterHandler = enterHandler;
-          searchInput.addEventListener('keydown', searchInput._enterHandler);
-
-        } catch (err) {
-          console.error(err);
-          searchIcon.classList.remove('fa-spinner', 'fa-spin');
-          searchIcon.classList.add('fa-search');
-          searchResults.innerHTML = `
-            <div class="no-results" style="color: var(--error-color);">
-              <i class="fas fa-exclamation-triangle"></i>
-              <div>An error occurred during search.</div>
-            </div>`;
-        }
-      }, 150);
-    }
+      resultsArea.classList.add('active');
+      const users = await fetchAPI(`/search-users?query=${encodeURIComponent(query)}`);
+      searchResults.innerHTML = '';
+      users.forEach(u => searchResults.appendChild(createUserCard(u)));
+    });
   </script>
 </body>
 </html>
