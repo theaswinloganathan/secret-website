@@ -67,7 +67,8 @@ exports.saveMessage = async (req, res) => {
     // Security check for group messages
     if (groupId) {
       const group = await Group.findById(groupId);
-      if (!group || !group.members.includes(senderId)) {
+      const isMember = group && group.members.some(m => m.toString() === senderId.toString());
+      if (!isMember) {
         return res.status(403).json({ message: 'Not a member of this group' });
       }
     }
@@ -102,9 +103,13 @@ exports.deleteMessage = async (req, res) => {
     const message = await Message.findById(messageId);
     if (!message) return res.status(404).json({ message: 'Message not found' });
 
-    // Allow deletion if the user is either the sender OR the receiver
-    if (message.senderId.toString() !== requesterId && message.receiverId.toString() !== requesterId) {
-      return res.status(403).json({ message: 'Unauthorized: You can only delete your own conversations' });
+    // Allow deletion if the user is the sender
+    const isSender = message.senderId.toString() === requesterId;
+    // For private chats, allow receiver to delete. For groups, receiverId is missing.
+    const isReceiver = message.receiverId && message.receiverId.toString() === requesterId;
+
+    if (!isSender && !isReceiver) {
+      return res.status(403).json({ message: 'Unauthorized: You can only delete your own messages' });
     }
 
     if (message.imageUrl) {
