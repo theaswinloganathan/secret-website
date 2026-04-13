@@ -12,6 +12,7 @@ const userRoutes = require('./routes/userRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 
 const Message = require('./models/Message');
+const User = require('./models/User');
 const cron = require('node-cron');
 
 // Cleanup Cron Job - Runs every minute
@@ -71,13 +72,32 @@ app.use('/api', chatRoutes);
 const connectedUsers = new Map();
 
 io.on('connection', (socket) => {
-  socket.on('register', (userId) => {
+  socket.on('register', async (userId) => {
     connectedUsers.set(userId, socket.id);
-    io.emit('user_status', { userId, status: 'online' });
+    const user = await User.findById(userId);
+    if (user && !user.ghostMode) {
+      io.emit('user_status', { userId, status: 'online' });
+    }
   });
 
   socket.on('join_room', (roomId) => {
     socket.join(roomId);
+  });
+
+  socket.on('typing', async (data) => {
+    const user = await User.findById(data.userId);
+    if (user && !user.ghostMode) {
+      socket.to(data.roomId).emit('user_typing', { userId: data.userId, typing: data.typing });
+    }
+  });
+
+  socket.on('screenshot_taken', async (data) => {
+    const { userId, username, roomId } = data;
+    io.to(roomId).emit('system_notification', { 
+      type: 'screenshot', 
+      content: `${username} took a screenshot`,
+      timestamp: new Date()
+    });
   });
 
   socket.on('send_message', async (data) => {
@@ -96,18 +116,25 @@ io.on('connection', (socket) => {
       { senderId: senderId, receiverId: readerId, status: { $ne: 'seen' } },
       { status: 'seen' }
     );
-    io.to(roomId).emit('message_status_update', { senderId, readerId, status: 'seen' });
+    
+    const reader = await User.findById(readerId);
+    if (reader && !reader.ghostMode) {
+      io.to(roomId).emit('message_status_update', { senderId, readerId, status: 'seen' });
+    }
   });
 
   socket.on('delete_message', (data) => {
     io.to(data.roomId).emit('message_deleted', data.messageId);
   });
 
-  socket.on('disconnect', () => {
+  socket.on('disconnect', async () => {
     for (const [userId, socketId] of connectedUsers.entries()) {
       if (socketId === socket.id) {
         connectedUsers.delete(userId);
-        io.emit('user_status', { userId, status: 'offline' });
+        const user = await User.findByIdAndUpdate(userId, { lastSeen: new Date() }, { new: true });
+        if (user && !user.ghostMode) {
+          io.emit('user_status', { userId, status: 'offline' });
+        }
         break;
       }
     }

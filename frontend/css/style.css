@@ -406,3 +406,58 @@ input:not(:-webkit-autofill) {
   box-shadow: 0 0 10px var(--primary-color);
   border-color: var(--primary-color);
 }
+
+/* Privacy Features Styles */
+.message.system {
+  align-self: center;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  padding: 5px 15px;
+  border-radius: 50px;
+  margin: 10px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.ghost-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  font-size: 14px;
+  filter: drop-shadow(0 0 5px var(--primary-color));
+  animation: ghostFloat 2s ease-in-out infinite;
+  display: none;
+}
+
+@keyframes ghostFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+.ghost-avatar-glow {
+  box-shadow: 0 0 15px rgba(0, 242, 254, 0.5) !important;
+  border: 2px solid var(--primary-color) !important;
+}
+
+#ghostToggle {
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#ghostToggle.active {
+  background: rgba(0, 242, 254, 0.1);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  box-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
+}

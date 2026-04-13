@@ -16,6 +16,14 @@ const userSchema = new mongoose.Schema({
   chatPassword: {
     type: String,
     required: true,
+  },
+  ghostMode: {
+    type: Boolean,
+    default: false
+  },
+  lastSeen: {
+    type: Date,
+    default: Date.now
   }
 }, { timestamps: true });
 

@@ -18,3 +18,19 @@ exports.searchUsers = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+exports.toggleGhostMode = async (req, res) => {
+  try {
+    const { ghostMode } = req.body;
+    const user = await User.findByIdAndUpdate(
+      req.user.userId,
+      { ghostMode },
+      { new: true }
+    ).select('-loginPassword -chatPassword');
+    
+    res.json(user);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};

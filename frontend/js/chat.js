@@ -45,6 +45,35 @@ socket.on('message_deleted', (messageId) => {
   if (el) el.remove();
 });
 
+socket.on('system_notification', (data) => {
+  const container = document.getElementById('messagesContainer');
+  const div = document.createElement('div');
+  div.className = 'message system';
+  div.innerHTML = `<i class="fas fa-shield-alt"></i> ${data.content}`;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+});
+
+socket.on('user_typing', (data) => {
+  if (data.userId === currentTargetId) {
+    const headerInfo = document.querySelector('.header-info');
+    let typingEl = document.getElementById('typingIndicator');
+    if (data.typing) {
+      if (!typingEl) {
+        typingEl = document.createElement('div');
+        typingEl.id = 'typingIndicator';
+        typingEl.style.fontSize = '0.7rem';
+        typingEl.style.color = 'var(--primary-color)';
+        typingEl.style.marginLeft = '10px';
+        typingEl.textContent = 'typing...';
+        headerInfo.appendChild(typingEl);
+      }
+    } else if (typingEl) {
+      typingEl.remove();
+    }
+  }
+});
+
 socket.on('message_status_update', (data) => {
   if (data.senderId === user.id && data.readerId === currentTargetId) {
     document.querySelectorAll('.message.sent .status-ticks').forEach(tick => {
@@ -146,6 +175,24 @@ const appendMessage = (msg, isSent) => {
   container.appendChild(div);
   container.scrollTop = container.scrollHeight;
 };
+
+// Screenshot Detection (Desktop)
+window.addEventListener('keyup', (e) => {
+  if (e.key === 'PrintScreen' || e.keyCode === 44) {
+    socket.emit('screenshot_taken', {
+      userId: user.id,
+      username: user.username,
+      roomId: currentRoomId
+    });
+  }
+});
+
+// Detect typical screenshot shortcuts (Ctrl+S, etc. though restricted)
+window.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    // Some people use this, but PrintScreen is the main one we can catch
+  }
+});
 
 const showModal = () => {
   window.location.href = 'search.html';
@@ -257,6 +304,16 @@ document.getElementById('sendBtn').addEventListener('click', async () => {
 document.getElementById('messageInput').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') {
     document.getElementById('sendBtn').click();
+    socket.emit('typing', { userId: user.id, roomId: currentRoomId, typing: false });
+  } else {
+    // Emit typing status
+    socket.emit('typing', { userId: user.id, roomId: currentRoomId, typing: true });
+    
+    // Stop typing indicator after 2 seconds of inactivity
+    clearTimeout(window.typingTimer);
+    window.typingTimer = setTimeout(() => {
+      socket.emit('typing', { userId: user.id, roomId: currentRoomId, typing: false });
+    }, 2000);
   }
 });
 
@@ -382,5 +439,58 @@ if (timerBtn && timerDropdown) {
 
   document.addEventListener('click', () => {
     timerDropdown.style.display = 'none';
+  });
+}
+
+// Ghost Mode Logic
+const ghostToggle = document.getElementById('ghostToggle');
+const selfGhostBadge = document.getElementById('selfGhostBadge');
+const headerAvatar = document.getElementById('headerAvatar');
+
+const updateGhostUI = (active) => {
+  if (active) {
+    ghostToggle.classList.add('active');
+    selfGhostBadge.style.display = 'block';
+    headerAvatar.classList.add('ghost-avatar-glow');
+    ghostToggle.querySelector('span').textContent = 'Ghost Mode: ON';
+  } else {
+    ghostToggle.classList.remove('active');
+    selfGhostBadge.style.display = 'none';
+    headerAvatar.classList.remove('ghost-avatar-glow');
+    ghostToggle.querySelector('span').textContent = 'Ghost Mode: OFF';
+  }
+};
+
+// Initial state
+const currentUser = JSON.parse(localStorage.getItem('user'));
+if (currentUser && currentUser.ghostMode) {
+  updateGhostUI(true);
+}
+
+if (ghostToggle) {
+  ghostToggle.addEventListener('click', async () => {
+    const isActive = ghostToggle.classList.contains('active');
+    const newState = !isActive;
+    
+    try {
+      const updatedUser = await fetchAPI('/ghost-mode', {
+        method: 'PATCH',
+        body: JSON.stringify({ ghostMode: newState })
+      });
+      
+      updateGhostUI(newState);
+      
+      // Update local storage
+      const localUser = JSON.parse(localStorage.getItem('user'));
+      localUser.ghostMode = newState;
+      localStorage.setItem('user', JSON.stringify(localUser));
+      
+      // Notify server to update status real-time
+      socket.emit('register', user.id); 
+      
+    } catch (err) {
+      console.error(err);
+      alert('Failed to update Ghost Mode');
+    }
   });
 }
