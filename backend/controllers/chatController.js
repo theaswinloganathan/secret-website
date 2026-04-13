@@ -75,7 +75,7 @@ exports.saveMessage = async (req, res) => {
       imageUrl,
       expiresAt 
     });
-    await newMessage.save();
+    await (await newMessage.save()).populate('senderId', 'username');
 
     res.status(201).json(newMessage);
   } catch (err) {

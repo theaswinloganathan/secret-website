@@ -21,7 +21,10 @@ socket.emit('register', user.id);
 if (currentRoomId) socket.emit('join_room', currentRoomId);
 
 socket.on('receive_message', (msg) => {
-  if (msg.groupId === currentGroupId || (!currentGroupId && (msg.senderId === currentTargetId || msg.senderId === user.id))) {
+  const isCorrectGroup = currentGroupId && msg.groupId === currentGroupId;
+  const isCorrectPrivate = !currentGroupId && !msg.groupId && (msg.senderId === currentTargetId || msg.senderId._id === currentTargetId || msg.senderId === user.id || msg.senderId._id === user.id);
+
+  if (isCorrectGroup || isCorrectPrivate) {
     appendMessage(msg, (msg.senderId._id || msg.senderId) === user.id);
   }
 });
