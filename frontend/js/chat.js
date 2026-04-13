@@ -3,7 +3,11 @@ if (!user || !localStorage.getItem('token')) {
   window.location.href = 'index.html';
 }
 
-document.getElementById('myUsername').textContent = user.username;
+// Set own username if element exists
+const myUsernameEl = document.getElementById('myUsername');
+if (myUsernameEl) {
+  myUsernameEl.textContent = user.username;
+}
 
 const socket = io(API_BASE_URL);
 socket.emit('register', user.id);
