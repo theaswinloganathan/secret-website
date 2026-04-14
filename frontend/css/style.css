@@ -626,9 +626,16 @@ input:not(:-webkit-autofill) {
   color: white;
 }
 
-.btn-confirm {
-  background: var(--primary-color);
-  color: #000;
+.status-ticks.seen {
+  color: #00f2fe;
+}
+
+/* --- RESPONSIVE DESIGN SYSTEM --- */
+@media (max-width: 768px) {
+  body {
+    padding: 0;
+    align-items: stretch;
+  }
 }
 
 /* --- RESPONSIVE DESIGN SYSTEM --- */
