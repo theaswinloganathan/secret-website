@@ -580,11 +580,11 @@
 
   <script src="js/api.js?v=0.2.0"></script>
   <script>
-    if (!localStorage.getItem('token')) {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user || !localStorage.getItem('token')) {
       window.location.href = 'index.html';
     }
 
-    const user = JSON.parse(localStorage.getItem('user'));
     let selectedUser = null;
 
     // Modal Elements
