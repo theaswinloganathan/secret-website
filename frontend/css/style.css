@@ -861,3 +861,41 @@ input:not(:-webkit-autofill) {
   color: var(--text-muted);
 }
 
+/* --- GHOST MODE STYLES --- */
+.ghost-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  font-size: 1.2rem;
+  display: none;
+  filter: drop-shadow(0 0 5px #7000ff);
+  animation: floatGhost 3s ease-in-out infinite;
+}
+
+@keyframes floatGhost {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+.ghost-avatar-glow {
+  box-shadow: 0 0 15px #7000ff, inset 0 0 10px rgba(112, 0, 255, 0.5);
+  border: 2px solid #7000ff !important;
+  animation: ghostPulse 2s infinite alternate;
+}
+
+@keyframes ghostPulse {
+  from { box-shadow: 0 0 10px #7000ff; }
+  to { box-shadow: 0 0 25px #7000ff, 0 0 10px #00f2fe; }
+}
+
+#ghostToggle.active {
+  background: rgba(112, 0, 255, 0.2);
+  border-color: #7000ff;
+  color: #7000ff;
+}
+
+#ghostToggle.active i {
+  color: #7000ff;
+  text-shadow: 0 0 10px #7000ff;
+}
+

@@ -1,5 +1,6 @@
 const Group = require('../models/Group');
 const Message = require('../models/Message');
+const User = require('../models/User');
 const bcrypt = require('bcrypt');
 
 exports.createGroup = async (req, res) => {
@@ -113,10 +114,11 @@ exports.getGroupMessages = async (req, res) => {
 exports.markGroupMessagesAsSeen = async (req, res) => {
   try {
     const groupId = req.params.groupId;
-    const { userId, username, ghostMode } = req.user;
+    const { userId, username } = req.user;
 
-    // Ghost Mode: Privacy first - don't record seen status
-    if (ghostMode) {
+    // Fetch live user data to check ghost mode (JWT might be stale)
+    const dbUser = await User.findById(userId);
+    if (dbUser && dbUser.ghostMode) {
       return res.json({ message: 'Ghost mode active, seen status not recorded' });
     }
 
