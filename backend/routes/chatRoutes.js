@@ -5,8 +5,8 @@ const authMiddleware = require('../middleware/auth');
 const jwt = require('jsonwebtoken');
 
 const chatAccessMiddleware = (req, res, next) => {
-  // If it's a group message or group message history, bypass this specific 1-to-1 token check
-  if (req.body.groupId || req.params.groupId || req.query.groupId) {
+  // Bypass for group interactions or checking seen status (which handles its own auth)
+  if (req.body.groupId || req.params.groupId || req.query.groupId || req.path.includes('/seen')) {
     return next();
   }
 
@@ -25,6 +25,7 @@ router.post('/verify-chat-password', authMiddleware, chatController.verifyChatPa
 router.get('/messages/:userId', authMiddleware, chatAccessMiddleware, chatController.getMessages);
 router.post('/messages', authMiddleware, chatAccessMiddleware, chatController.saveMessage);
 router.delete('/messages/:messageId', authMiddleware, chatAccessMiddleware, chatController.deleteMessage);
+router.get('/messages/:messageId/seen', authMiddleware, chatAccessMiddleware, chatController.getMessageSeenStatus);
 router.post('/upload', authMiddleware, chatAccessMiddleware, chatController.upload.single('image'), chatController.uploadImage);
 
 module.exports = router;

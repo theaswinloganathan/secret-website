@@ -134,6 +134,14 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('group_messages_seen', (data) => {
+    // Notify room that group messages were seen
+    io.to(data.roomId).emit('group_messages_seen_update', { 
+      messageIds: data.messageIds, 
+      viewer: data.viewer 
+    });
+  });
+
   socket.on('delete_message', (data) => {
     io.to(data.roomId).emit('message_deleted', data.messageId);
   });

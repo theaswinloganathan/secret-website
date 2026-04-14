@@ -93,6 +93,7 @@ exports.getGroupMessages = async (req, res) => {
     const groupId = req.params.groupId;
     const userId = req.user.userId;
 
+    const group = await Group.findById(groupId);
     const isMember = group && group.members.some(m => m.toString() === userId.toString());
     if (!isMember) {
       return res.status(403).json({ message: 'Unauthorized: Access denied' });
@@ -108,3 +109,42 @@ exports.getGroupMessages = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+exports.markGroupMessagesAsSeen = async (req, res) => {
+  try {
+    const groupId = req.params.groupId;
+    const { userId, username, ghostMode } = req.user;
+
+    // Ghost Mode: Privacy first - don't record seen status
+    if (ghostMode) {
+      return res.json({ message: 'Ghost mode active, seen status not recorded' });
+    }
+
+    const now = new Date();
+    
+    // Find all unseen messages from others in this group
+    const messagesToUpdate = await Message.find({
+      groupId,
+      senderId: { $ne: userId },
+      'seen_by.user_id': { $ne: userId }
+    });
+
+    if (messagesToUpdate.length === 0) {
+      return res.json({ message: 'No new messages to mark as seen' });
+    }
+
+    const messageIds = messagesToUpdate.map(m => m._id);
+
+    // Bulk update seen_by
+    await Message.updateMany(
+      { _id: { $in: messageIds } },
+      { $push: { seen_by: { user_id: userId, username, seen_at: now } } }
+    );
+
+    res.json({ message_ids: messageIds, viewer: { user_id: userId, username, seen_at: now } });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+

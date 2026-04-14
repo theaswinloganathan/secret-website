@@ -29,7 +29,12 @@ const MessageSchema = new mongoose.Schema({
   },
   expiresAt: {
     type: Date
-  }
+  },
+  seen_by: [{
+    user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    username: String,
+    seen_at: { type: Date, default: Date.now }
+  }]
 }, { timestamps: true });
 
 MessageSchema.index({ senderId: 1, receiverId: 1, createdAt: 1 });

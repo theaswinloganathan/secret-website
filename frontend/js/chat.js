@@ -14,64 +14,49 @@ let currentGroupId = groupId;
 let currentChatToken = null;
 let currentRoomId = groupId ? `group_${groupId}` : null;
 let selectedDuration = 0;
+let currentInfoMessageId = null;
 
 const getRoomId = (id1, id2) => [id1, id2].sort().join('_');
 
 socket.emit('register', user.id);
 if (currentRoomId) socket.emit('join_room', currentRoomId);
 
+// Mark as seen on load
+if (currentGroupId) {
+  fetchAPI(`/groups/${currentGroupId}/messages/seen`, { method: 'POST' })
+    .then(data => {
+      if (data.message_ids && data.message_ids.length > 0) {
+        socket.emit('group_messages_seen', { 
+          roomId: currentRoomId, 
+          messageIds: data.message_ids, 
+          viewer: data.viewer 
+        });
+      }
+    }).catch(console.error);
+}
+
 socket.on('receive_message', (msg) => {
-  const isCorrectGroup = currentGroupId && msg.groupId === currentGroupId;
-  const isCorrectPrivate = !currentGroupId && !msg.groupId && (msg.senderId === currentTargetId || msg.senderId._id === currentTargetId || msg.senderId === user.id || msg.senderId._id === user.id);
+  const isCorrectGroup = currentGroupId && String(msg.groupId) === String(currentGroupId);
+  const isCorrectPrivate = !currentGroupId && !msg.groupId && (String(msg.senderId) === String(currentTargetId) || (msg.senderId && String(msg.senderId._id) === String(currentTargetId)) || String(msg.senderId) === String(user.id) || (msg.senderId && String(msg.senderId._id) === String(user.id)));
 
   if (isCorrectGroup || isCorrectPrivate) {
     appendMessage(msg, (msg.senderId._id || msg.senderId) === user.id);
   }
 });
 
-socket.on('message_deleted', (messageId) => {
-  const el = document.querySelector(`[data-id="${messageId}"]`);
-  if (el) el.remove();
-});
+socket.on('group_messages_seen_update', (data) => {
+  if (!data.messageIds) return;
 
-socket.on('system_notification', (data) => {
-  const container = document.getElementById('messagesContainer');
-  const div = document.createElement('div');
-  div.className = 'message system';
-  div.innerHTML = `<i class="fas fa-shield-alt"></i> ${data.content}`;
-  container.appendChild(div);
-  container.scrollTop = container.scrollHeight;
-});
-
-socket.on('user_status', (data) => {
-  if (data.userId === currentTargetId) {
-    const headerAvatar = document.getElementById('headerAvatar');
-    if (data.status === 'online') {
-      headerAvatar.style.border = '2px solid var(--success-color)';
-    } else {
-      headerAvatar.style.border = '1px solid var(--glass-border)';
+  data.messageIds.forEach(msgId => {
+    const el = document.querySelector(`[data-id="${msgId}"]`);
+    if (el) {
+      updateMessageSeenUI(el, data.viewer);
     }
-  }
-});
-
-socket.on('user_typing', (data) => {
-  if (data.userId === currentTargetId) {
-    const headerInfo = document.querySelector('.header-info');
-    let typingEl = document.getElementById('typingIndicator');
-    if (data.typing) {
-      if (!typingEl) {
-        typingEl = document.createElement('div');
-        typingEl.id = 'typingIndicator';
-        typingEl.style.fontSize = '0.7rem';
-        typingEl.style.color = 'var(--primary-color)';
-        typingEl.style.marginLeft = '10px';
-        typingEl.textContent = 'typing...';
-        headerInfo.appendChild(typingEl);
-      }
-    } else if (typingEl) {
-      typingEl.remove();
+    // Update active info sheet if open for this message
+    if (currentInfoMessageId === msgId) {
+      addViewerToInfoSheet(data.viewer);
     }
-  }
+  });
 });
 
 socket.on('message_status_update', (data) => {
@@ -83,11 +68,80 @@ socket.on('message_status_update', (data) => {
   }
 });
 
+const updateMessageSeenUI = (msgEl, viewer) => {
+  let seenContainer = msgEl.querySelector('.seen-avatars-container');
+  if (!seenContainer) {
+    seenContainer = document.createElement('div');
+    seenContainer.className = 'seen-avatars-container';
+    msgEl.appendChild(seenContainer);
+  }
+
+  let stack = seenContainer.querySelector('.avatar-stack');
+  if (!stack) {
+    stack = document.createElement('div');
+    stack.className = 'avatar-stack';
+    seenContainer.appendChild(stack);
+  }
+
+  // Prevent duplicate avatars
+  if (stack.querySelector(`[data-viewer-id="${viewer.user_id}"]`)) return;
+
+  const count = stack.children.length;
+  if (count < 3) {
+    const avatar = document.createElement('div');
+    avatar.className = 'stacked-avatar';
+    avatar.setAttribute('data-viewer-id', viewer.user_id);
+    avatar.textContent = viewer.username.charAt(0).toUpperCase();
+    avatar.style.background = getUserColor(viewer.username);
+    stack.appendChild(avatar);
+  } else if (count === 3) {
+    const more = document.createElement('div');
+    more.className = 'stacked-avatar more-count';
+    more.style.background = '#333';
+    more.style.color = '#fff';
+    more.textContent = '+1';
+    stack.appendChild(more);
+  } else {
+    const more = stack.querySelector('.more-count');
+    const currentMore = parseInt(more.textContent.replace('+', '')) || 0;
+    more.textContent = `+${currentMore + 1}`;
+  }
+
+  let seenText = seenContainer.querySelector('.seen-status-text');
+  if (!seenText) {
+    seenText = document.createElement('div');
+    seenText.className = 'seen-status-text seen-text-cyan';
+    seenContainer.appendChild(seenText);
+  }
+  const totalCount = parseInt(seenText.getAttribute('data-total') || 0) + 1;
+  seenText.setAttribute('data-total', totalCount);
+  seenText.textContent = `Seen by ${totalCount}`;
+};
+
+const getUserColor = (name) => {
+  const colors = ['#00f2fe', '#4facfe', '#7000ff', '#ff3366', '#00ff88', '#f9d423', '#fb8c00'];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return colors[Math.abs(hash) % colors.length];
+};
+
 const appendMessage = (msg, isSent) => {
   const container = document.getElementById('messagesContainer');
   const div = document.createElement('div');
   div.className = `message ${isSent ? 'sent' : 'received'}`;
   div.setAttribute('data-id', msg._id);
+
+  // Long press for info
+  if (isSent && currentGroupId) {
+    let pressTimer;
+    const startPress = () => { pressTimer = setTimeout(() => openMessageInfo(msg._id), 600); };
+    const cancelPress = () => { clearTimeout(pressTimer); };
+    div.addEventListener('mousedown', startPress);
+    div.addEventListener('touchstart', startPress);
+    div.addEventListener('mouseup', cancelPress);
+    div.addEventListener('mouseleave', cancelPress);
+    div.addEventListener('touchend', cancelPress);
+  }
 
   if (currentGroupId && !isSent) {
     const nameEl = document.createElement('div');
@@ -123,6 +177,44 @@ const appendMessage = (msg, isSent) => {
   else { statusTicks.innerHTML = '✓'; }
   div.appendChild(statusTicks);
 
+  if (isSent && currentGroupId && msg.seen_by) {
+    const seenContainer = document.createElement('div');
+    seenContainer.className = 'seen-avatars-container';
+    
+    if (msg.seen_by.length > 0) {
+      const stack = document.createElement('div');
+      stack.className = 'avatar-stack';
+      msg.seen_by.slice(0, 3).forEach(s => {
+        const avatar = document.createElement('div');
+        avatar.className = 'stacked-avatar';
+        avatar.textContent = s.username.charAt(0).toUpperCase();
+        avatar.style.background = getUserColor(s.username);
+        avatar.setAttribute('data-viewer-id', s.user_id);
+        stack.appendChild(avatar);
+      });
+      if (msg.seen_by.length > 3) {
+        const more = document.createElement('div');
+        more.className = 'stacked-avatar more-count';
+        more.style.background = '#333';
+        more.textContent = `+${msg.seen_by.length - 3}`;
+        stack.appendChild(more);
+      }
+      seenContainer.appendChild(stack);
+
+      const seenText = document.createElement('div');
+      seenText.className = 'seen-status-text seen-text-cyan';
+      seenText.setAttribute('data-total', msg.seen_by.length);
+      seenText.textContent = `Seen by ${msg.seen_by.length}`;
+      seenContainer.appendChild(seenText);
+    } else {
+      const notSeen = document.createElement('div');
+      notSeen.className = 'seen-status-text not-seen-text-gray';
+      notSeen.textContent = 'Not seen yet';
+      seenContainer.appendChild(notSeen);
+    }
+    div.appendChild(seenContainer);
+  }
+
   if (msg.expiresAt) {
     const expiry = document.createElement('div');
     expiry.className = 'expiry-indicator';
@@ -136,6 +228,88 @@ const appendMessage = (msg, isSent) => {
 
   container.appendChild(div);
   container.scrollTop = container.scrollHeight;
+};
+
+const openMessageInfo = async (messageId) => {
+  currentInfoMessageId = messageId;
+  const sheet = document.getElementById('messageInfoSheet');
+  const seenList = document.getElementById('seenByList');
+  const notSeenList = document.getElementById('notSeenList');
+  
+  seenList.innerHTML = '<div style="padding:10px; opacity:0.6;">Loading...</div>';
+  notSeenList.innerHTML = '';
+  sheet.classList.add('active');
+
+  try {
+    const data = await fetchAPI(`/messages/${messageId}/seen`);
+    seenList.innerHTML = '';
+    notSeenList.innerHTML = '';
+
+    if (data.seen_by.length === 0) {
+      seenList.innerHTML = '<div class="info-user-item"><div class="not-opened-yet">No one has seen it yet.</div></div>';
+    } else {
+      data.seen_by.forEach(s => addViewerToInfoSheet(s));
+    }
+
+    if (data.not_seen_yet.length === 0) {
+      notSeenList.innerHTML = '<div class="info-user-item"><div class="not-opened-yet">Everyone has seen it!</div></div>';
+    } else {
+      data.not_seen_yet.forEach(ns => {
+        const item = document.createElement('div');
+        item.className = 'info-user-item';
+        item.setAttribute('data-user-id', ns.user_id);
+        item.innerHTML = `
+          <div class="header-avatar" style="width:35px; height:35px; background:${getUserColor(ns.username)}">${ns.username.charAt(0).toUpperCase()}</div>
+          <div class="info-user-detail">
+            <div class="info-user-name">${ns.username}</div>
+            <div class="not-opened-yet">Not opened yet</div>
+          </div>
+        `;
+        notSeenList.appendChild(item);
+      });
+    }
+  } catch (err) {
+    seenList.innerHTML = '<div style="padding:10px; color:var(--error-color);">Error loading info</div>';
+  }
+};
+
+const addViewerToInfoSheet = (viewer) => {
+  const seenList = document.getElementById('seenByList');
+  const notSeenList = document.getElementById('notSeenList');
+  
+  // Remove from not seen list if present
+  const existingNotSeen = notSeenList.querySelector(`[data-user-id="${viewer.user_id}"]`);
+  if (existingNotSeen) existingNotSeen.remove();
+  if (notSeenList.children.length === 0) {
+    notSeenList.innerHTML = '<div class="info-user-item"><div class="not-opened-yet">Everyone has seen it!</div></div>';
+  }
+
+  // Add to seen list
+  if (seenList.querySelector(`[data-user-id="${viewer.user_id}"]`)) return;
+
+  const time = new Date(viewer.seen_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const item = document.createElement('div');
+  item.className = 'info-user-item';
+  item.setAttribute('data-user-id', viewer.user_id);
+  item.innerHTML = `
+    <div class="header-avatar" style="width:35px; height:35px; background:${getUserColor(viewer.username)}">${viewer.username.charAt(0).toUpperCase()}</div>
+    <div class="info-user-detail">
+      <div class="info-user-name">${viewer.username}</div>
+      <div class="info-user-time">Seen at ${time}</div>
+    </div>
+  `;
+  seenList.appendChild(item);
+  
+  // Clean up "No one seen yet" if it was there
+  const emptyMsg = seenList.querySelector('.not-opened-yet');
+  if (emptyMsg && seenList.children.length > 1) emptyMsg.parentElement.remove();
+};
+
+document.getElementById('messageInfoSheet').onclick = (e) => {
+  if (e.target.id === 'messageInfoSheet' || e.target.className === 'sheet-handle') {
+    document.getElementById('messageInfoSheet').classList.remove('active');
+    currentInfoMessageId = null;
+  }
 };
 
 const loadMessages = async () => {

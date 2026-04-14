@@ -138,3 +138,39 @@ exports.uploadImage = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+exports.getMessageSeenStatus = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const userId = req.user.userId;
+
+    const message = await Message.findById(messageId);
+    if (!message) return res.status(404).json({ message: 'Message not found' });
+
+    // Only the message sender can call this endpoint
+    if (message.senderId.toString() !== userId) {
+      return res.status(403).json({ message: 'Only the sender can view full seen status' });
+    }
+
+    if (!message.groupId) {
+      return res.json({ seen_by: message.seen_by || [], not_seen_yet: [] });
+    }
+
+    const group = await Group.findById(message.groupId).populate('members', 'username ghostMode');
+    if (!group) return res.status(404).json({ message: 'Group not found' });
+
+    const seenUserIds = message.seen_by.map(s => s.user_id.toString());
+    
+    // Seen by list from the message
+    const seen_by = message.seen_by;
+
+    // Not seen yet list: group members who are not the sender and not in seen_by
+    const not_seen_yet = group.members
+      .filter(m => m._id.toString() !== userId && !seenUserIds.includes(m._id.toString()))
+      .map(m => ({ user_id: m._id, username: m.username }));
+
+    res.json({ seen_by, not_seen_yet });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};

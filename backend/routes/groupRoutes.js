@@ -8,5 +8,6 @@ router.post('/join', authMiddleware, groupController.joinGroup);
 router.get('/', authMiddleware, groupController.getUserGroups);
 router.delete('/:id', authMiddleware, groupController.deleteGroup);
 router.get('/:groupId/messages', authMiddleware, groupController.getGroupMessages);
+router.post('/:groupId/messages/seen', authMiddleware, groupController.markGroupMessagesAsSeen);
 
 module.exports = router;
