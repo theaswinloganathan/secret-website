@@ -116,7 +116,8 @@ io.on('connection', (socket) => {
       const isOnline = connectedUsers.has(data.message.receiverId);
       if (isOnline && data.message.status !== 'seen') {
         data.message.status = 'delivered';
-        await Message.findByIdAndUpdate(data.message._id, { status: 'delivered' });
+        data.message.deliveredAt = new Date();
+        await Message.findByIdAndUpdate(data.message._id, { status: 'delivered', deliveredAt: data.message.deliveredAt });
       }
     }
     io.to(data.roomId).emit('receive_message', data.message);
@@ -124,13 +125,14 @@ io.on('connection', (socket) => {
 
   socket.on('mark_as_seen', async (data) => {
     const { readerId, senderId, roomId } = data;
+    const now = new Date();
     await Message.updateMany(
       { senderId: senderId, receiverId: readerId, status: { $ne: 'seen' } },
-      { status: 'seen' }
+      { status: 'seen', seenAt: now }
     );
     
     if (!socket.ghostMode) {
-      io.to(roomId).emit('message_status_update', { senderId, readerId, status: 'seen' });
+      io.to(roomId).emit('message_status_update', { senderId, readerId, status: 'seen', seenAt: now });
     }
   });
 

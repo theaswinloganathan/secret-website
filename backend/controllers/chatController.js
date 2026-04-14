@@ -152,7 +152,13 @@ exports.getMessageSeenStatus = async (req, res) => {
     }
 
     if (!message.groupId) {
-      return res.json({ seen_by: message.seen_by || [], not_seen_yet: [] });
+      return res.json({ 
+        type: 'private',
+        sent_at: message.createdAt,
+        delivered_at: message.deliveredAt,
+        seen_at: message.seenAt,
+        status: message.status
+      });
     }
 
     const group = await Group.findById(message.groupId).populate('members', 'username ghostMode');

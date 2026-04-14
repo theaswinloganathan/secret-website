@@ -34,7 +34,9 @@ const MessageSchema = new mongoose.Schema({
     user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     username: String,
     seen_at: { type: Date, default: Date.now }
-  }]
+  }],
+  deliveredAt: { type: Date },
+  seenAt: { type: Date }
 }, { timestamps: true });
 
 MessageSchema.index({ senderId: 1, receiverId: 1, createdAt: 1 });

@@ -131,8 +131,8 @@ const appendMessage = (msg, isSent) => {
   div.className = `message ${isSent ? 'sent' : 'received'}`;
   div.setAttribute('data-id', msg._id);
 
-  // Long press for info
-  if (isSent && currentGroupId) {
+  // Long press or Click for info (if sent by user)
+  if (isSent) {
     let pressTimer;
     const startPress = () => { pressTimer = setTimeout(() => openMessageInfo(msg._id), 600); };
     const cancelPress = () => { clearTimeout(pressTimer); };
@@ -141,6 +141,10 @@ const appendMessage = (msg, isSent) => {
     div.addEventListener('mouseup', cancelPress);
     div.addEventListener('mouseleave', cancelPress);
     div.addEventListener('touchend', cancelPress);
+    div.onclick = (e) => {
+      if (currentGroupId) return; // For groups, handled by seenContainer. For private, allow click.
+      openMessageInfo(msg._id);
+    };
   }
 
   if (currentGroupId && !isSent) {
@@ -244,6 +248,7 @@ const openMessageInfo = async (messageId) => {
   const sheet = document.getElementById('messageInfoSheet');
   const seenList = document.getElementById('seenByList');
   const notSeenList = document.getElementById('notSeenList');
+  const sections = document.querySelectorAll('.sheet-section');
   
   seenList.innerHTML = '<div style="padding:10px; opacity:0.6;">Loading...</div>';
   notSeenList.innerHTML = '';
@@ -253,6 +258,37 @@ const openMessageInfo = async (messageId) => {
     const data = await fetchAPI(`/messages/${messageId}/seen`);
     seenList.innerHTML = '';
     notSeenList.innerHTML = '';
+
+    if (data.type === 'private') {
+      const formatTime = (date) => date ? new Date(date).toLocaleString([], { hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' }) : '---';
+      
+      seenList.innerHTML = `
+        <div class="info-user-item">
+          <div class="info-user-detail">
+            <div class="info-user-name" style="color:var(--primary-color)">Sent</div>
+            <div class="info-user-time">${formatTime(data.sent_at)}</div>
+          </div>
+        </div>
+        <div class="info-user-item">
+          <div class="info-user-detail">
+            <div class="info-user-name" style="color:var(--secondary-color)">Delivered</div>
+            <div class="info-user-time">${formatTime(data.delivered_at)}</div>
+          </div>
+        </div>
+        <div class="info-user-item">
+          <div class="info-user-detail">
+            <div class="info-user-name" style="color:var(--success-color)">Seen</div>
+            <div class="info-user-time">${formatTime(data.seen_at)}</div>
+          </div>
+        </div>
+      `;
+      // Hide Not Seen section for private chats
+      if (sections[1]) sections[1].style.display = 'none';
+      return;
+    }
+
+    // Restore Not Seen section for groups
+    if (sections[1]) sections[1].style.display = 'block';
 
     if (data.seen_by.length === 0) {
       seenList.innerHTML = '<div class="info-user-item"><div class="not-opened-yet">No one has seen it yet.</div></div>';
