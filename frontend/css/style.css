@@ -630,3 +630,89 @@ input:not(:-webkit-autofill) {
   background: var(--primary-color);
   color: #000;
 }
+
+/* --- RESPONSIVE DESIGN SYSTEM --- */
+
+/* 1. Large Tablets & Small Laptops (max-width: 1024px) */
+@media (max-width: 1024px) {
+  .glass-card {
+    padding: 30px;
+    max-width: 380px;
+  }
+}
+
+/* 2. Mobile / Android Phones (max-width: 768px) */
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+    align-items: flex-start; /* Better for scrolling content */
+    padding-top: 20px;
+  }
+
+  .glass-card {
+    padding: 24px;
+    border-radius: 20px;
+    animation: none; /* Disable floating on mobile for stability */
+    max-width: 100%;
+    margin: 10px;
+  }
+
+  .branding h1 {
+    font-size: 1.6rem;
+  }
+
+  /* Modals */
+  .modal {
+    padding: 20px;
+    width: 95%;
+    margin: 10px;
+  }
+
+  .modal-title {
+    font-size: 1.25rem;
+  }
+
+  /* List Grids (Users/Groups) */
+  .users-list {
+    grid-template-columns: 1fr; /* Stack into single column on mobile */
+  }
+
+  .user-card, .group-card {
+    padding: 12px;
+  }
+
+  .user-avatar, .group-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+
+  /* Hide button labels on very small screens to save space */
+  .btn-icon span {
+    display: none;
+  }
+
+  .btn-icon {
+    padding: 10px;
+    justify-content: center;
+  }
+}
+
+/* 3. Small Phones (max-width: 480px) */
+@media (max-width: 480px) {
+  .glass-card {
+    padding: 20px;
+    margin: 5px;
+  }
+
+  .btn-confirm, .btn-cancel {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+}
+
+/* Universal utility for full-screen layout on mobile */
+.mobile-full-height {
+  height: 100dvh; /* Dynamic viewport height for mobile browsers */
+}
+
