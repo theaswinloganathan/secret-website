@@ -143,6 +143,23 @@
       line-height: 1.4;
       animation: msgPop 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
       word-wrap: break-word;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message-time {
+      font-size: 0.65rem;
+      opacity: 0.6;
+      margin-top: 4px;
+      align-self: flex-end;
+    }
+
+    .message.sent .message-time {
+      color: rgba(0, 0, 0, 0.6);
+    }
+
+    .message.received .message-time {
+      color: rgba(255, 255, 255, 0.5);
     }
 
     @keyframes msgPop {

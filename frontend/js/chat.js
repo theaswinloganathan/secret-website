@@ -177,9 +177,18 @@ const appendMessage = (msg, isSent) => {
   else { statusTicks.innerHTML = '✓'; }
   div.appendChild(statusTicks);
 
+  // Time indicator
+  const time = new Date(msg.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const timeEl = document.createElement('div');
+  timeEl.className = 'message-time';
+  timeEl.textContent = time;
+  div.appendChild(timeEl);
+
   if (isSent && currentGroupId && msg.seen_by) {
     const seenContainer = document.createElement('div');
     seenContainer.className = 'seen-avatars-container';
+    seenContainer.style.cursor = 'pointer';
+    seenContainer.onclick = (e) => { e.stopPropagation(); openMessageInfo(msg._id); };
     
     if (msg.seen_by.length > 0) {
       const stack = document.createElement('div');
