@@ -22,6 +22,7 @@ const chatAccessMiddleware = (req, res, next) => {
 };
 
 router.post('/verify-chat-password', authMiddleware, chatController.verifyChatPassword);
+router.get('/recent', authMiddleware, chatController.getRecentChats);
 router.get('/messages/:userId', authMiddleware, chatAccessMiddleware, chatController.getMessages);
 router.post('/messages', authMiddleware, chatAccessMiddleware, chatController.saveMessage);
 router.delete('/messages/:messageId', authMiddleware, chatAccessMiddleware, chatController.deleteMessage);

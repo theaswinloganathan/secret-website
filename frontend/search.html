@@ -503,9 +503,9 @@
       </div>
     </div>
 
-    <!-- Suggested Users Section -->
+    <!-- Recent Chats Section -->
     <div class="search-section">
-      <h3 class="section-title"><i class="fas fa-fire"></i> Global Users</h3>
+      <h3 class="section-title" data-section="suggestions"><i class="fas fa-history"></i> Recent Chats</h3>
       <div id="suggestedList" class="users-list">
         <!-- Other users will be loaded here -->
       </div>
@@ -726,11 +726,18 @@
           groups.forEach(g => groupsList.appendChild(createGroupCard(g)));
         }
 
-        // Load Suggestions
-        const users = await fetchAPI('/search-users?query=a');
+        // Load Recent Chats
+        const users = await fetchAPI('/recent');
         const suggestedList = document.getElementById('suggestedList');
+        const suggestionTitle = document.querySelector('.section-title[data-section="suggestions"]');
+        if (suggestionTitle) suggestionTitle.textContent = 'Recent';
+        
         suggestedList.innerHTML = '';
-        users.slice(0, 6).forEach(u => suggestedList.appendChild(createUserCard(u)));
+        if (users.length === 0) {
+          suggestedList.innerHTML = '<div class="no-results" style="grid-column: 1/-1;">No recent chats yet. Start searching to chat!</div>';
+        } else {
+          users.forEach(u => suggestedList.appendChild(createUserCard(u)));
+        }
       } catch (err) {
         console.error(err);
       }

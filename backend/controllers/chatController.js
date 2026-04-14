@@ -180,3 +180,37 @@ exports.getMessageSeenStatus = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+exports.getRecentChats = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    // Find recent messages (private only for this list)
+    const messages = await Message.find({
+      $or: [{ senderId: userId }, { receiverId: userId }],
+      groupId: { $exists: false }
+    })
+    .sort({ createdAt: -1 })
+    .limit(50); // Look at last 50 messages to find unique users
+
+    const recentUserIds = new Set();
+    const recentUsers = [];
+
+    for (const msg of messages) {
+      if (recentUsers.length >= 10) break;
+      const otherId = msg.senderId.toString() === userId.toString() ? msg.receiverId : msg.senderId;
+      
+      if (otherId && !recentUserIds.has(otherId.toString())) {
+        recentUserIds.add(otherId.toString());
+        const otherUser = await User.findById(otherId).select('username _id');
+        if (otherUser) {
+          recentUsers.push(otherUser);
+        }
+      }
+    }
+
+    res.json(recentUsers);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
