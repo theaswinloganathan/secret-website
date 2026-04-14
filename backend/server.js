@@ -80,6 +80,7 @@ io.on('connection', (socket) => {
     
     const user = await User.findById(userId);
     if (user) {
+      socket.username = user.username;
       socket.ghostMode = user.ghostMode;
       // Emit offline if in ghost mode, online otherwise
       io.emit('user_status', { 
@@ -94,9 +95,33 @@ io.on('connection', (socket) => {
   });
 
   socket.on('typing', (data) => {
-    // Use socket.ghostMode for performance
+    // Volatile events are better for performance for transient status like typing
     if (!socket.ghostMode) {
-      socket.to(data.roomId).emit('user_typing', { userId: data.userId, typing: data.typing });
+      socket.to(data.roomId).volatile.emit('user_typing', { userId: data.userId, typing: data.typing });
+    }
+  });
+
+  socket.on('mark_group_seen', async (data) => {
+    const { groupId, roomId } = data;
+    const userId = socket.userId;
+    const username = socket.username;
+
+    if (socket.ghostMode || !userId) return;
+
+    const now = new Date();
+    const messagesToUpdate = await Message.find({
+      groupId,
+      senderId: { $ne: userId },
+      'seen_by.user_id': { $ne: userId }
+    }, { _id: 1 });
+
+    if (messagesToUpdate.length > 0) {
+      const messageIds = messagesToUpdate.map(m => m._id);
+      await Message.updateMany(
+        { _id: { $in: messageIds } },
+        { $push: { seen_by: { user_id: userId, username, seen_at: now } } }
+      );
+      io.to(roomId).emit('group_messages_seen_update', { messageIds, viewer: { user_id: userId, username, seen_at: now } });
     }
   });
 

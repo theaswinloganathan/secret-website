@@ -21,18 +21,9 @@ const getRoomId = (id1, id2) => [id1, id2].sort().join('_');
 socket.emit('register', user.id);
 if (currentRoomId) socket.emit('join_room', currentRoomId);
 
-// Mark as seen on load
+// Mark as seen on load using Sockets for performance
 if (currentGroupId) {
-  fetchAPI(`/groups/${currentGroupId}/messages/seen`, { method: 'POST' })
-    .then(data => {
-      if (data.message_ids && data.message_ids.length > 0) {
-        socket.emit('group_messages_seen', { 
-          roomId: currentRoomId, 
-          messageIds: data.message_ids, 
-          viewer: data.viewer 
-        });
-      }
-    }).catch(console.error);
+  socket.emit('mark_group_seen', { groupId: currentGroupId, roomId: currentRoomId });
 }
 
 socket.on('receive_message', (msg) => {
