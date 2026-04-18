@@ -350,7 +350,10 @@ const ChatPage = () => {
 
       if (isGroup || isPrivate) {
         const isSent = (msg.senderId?._id || msg.senderId) === user.id;
-        setMessages((prev) => [...prev, { ...msg, _isSent: isSent }]);
+        setMessages((prev) => {
+          if (prev.some((m) => m._id === msg._id)) return prev;
+          return [...prev, { ...msg, _isSent: isSent }];
+        });
       }
     });
 
