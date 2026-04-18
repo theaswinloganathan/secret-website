@@ -478,7 +478,7 @@
         <button id="showJoinGroup" class="btn-icon btn-chat" title="Join Group" style="color: var(--secondary-color); border-color: var(--secondary-color);">
           <i class="fas fa-sign-in-alt"></i> <span>Join Group</span>
         </button>
-        <button onclick="logout()" class="btn-icon btn-logout">
+        <button id="logoutBtn" class="btn-icon btn-logout">
           <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
         </button>
       </div>
@@ -555,9 +555,6 @@
       </div>
     </div>
   </div>
-
-    </div>
-
   <!-- Verification Modal -->
   <div id="verificationModal" class="modal-overlay">
     <div class="modal-content">
@@ -579,188 +576,194 @@
     </div>
   </div>
 
-  <script src="js/api.js?v=0.2.0"></script>
+  <script src="js/api.js?v=0.2.0" defer></script>
   <script>
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (!user || !localStorage.getItem('token')) {
-      window.location.href = 'index.html';
-    }
-
-    let selectedUser = null;
-
-    // Modal Elements
-    const verificationModal = document.getElementById('verificationModal');
-    const modalTargetName = document.getElementById('modalTargetName');
-    const modalPassword = document.getElementById('modalPassword');
-    const modalError = document.getElementById('modalError');
-    const confirmVerify = document.getElementById('confirmVerify');
-    const cancelVerify = document.getElementById('cancelVerify');
-
-    // Group Modal Elements
-    const createGroupModal = document.getElementById('createGroupModal');
-    const joinGroupModal = document.getElementById('joinGroupModal');
-    const showCreateGroup = document.getElementById('showCreateGroup');
-    const showJoinGroup = document.getElementById('showJoinGroup');
-
-    // Toggle Modals
-    showCreateGroup.onclick = () => createGroupModal.classList.add('active');
-    document.getElementById('cancelCreate').onclick = () => createGroupModal.classList.remove('active');
-    showJoinGroup.onclick = () => joinGroupModal.classList.add('active');
-    document.getElementById('cancelJoin').onclick = () => joinGroupModal.classList.remove('active');
-
-    // Create Group Logic
-    document.getElementById('confirmCreate').onclick = async () => {
-      const name = document.getElementById('groupName').value.trim();
-      const groupKey = document.getElementById('createGroupKey').value.trim();
-      if (!name || !groupKey) return alert('Fill all fields');
-
-      try {
-        await fetchAPI('/groups', {
-          method: 'POST',
-          body: JSON.stringify({ name, groupKey })
-        });
-        location.reload();
-      } catch (err) {
-        alert(err.message);
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user || !localStorage.getItem('token')) {
+        window.location.href = 'index.html';
       }
-    };
 
-    // Join Group Logic
-    document.getElementById('confirmJoin').onclick = async () => {
-      const name = document.getElementById('joinGroupName').value.trim();
-      const groupKey = document.getElementById('joinGroupKey').value.trim();
-      if (!name || !groupKey) return alert('Fill all fields');
+      document.getElementById('logoutBtn').addEventListener('click', () => {
+        if (typeof logout === 'function') logout();
+      });
 
-      try {
-        await fetchAPI('/groups/join', {
-          method: 'POST',
-          body: JSON.stringify({ name, groupKey })
-        });
-        location.reload();
-      } catch (err) {
-        alert(err.message);
-      }
-    };
+      let selectedUser = null;
 
-    function openVerificationModal(targetUser) {
-      selectedUser = targetUser;
-      modalTargetName.textContent = targetUser.username;
-      modalPassword.value = '';
-      modalError.style.display = 'none';
-      verificationModal.classList.add('active');
-      modalPassword.focus();
-    }
+      // Modal Elements
+      const verificationModal = document.getElementById('verificationModal');
+      const modalTargetName = document.getElementById('modalTargetName');
+      const modalPassword = document.getElementById('modalPassword');
+      const modalError = document.getElementById('modalError');
+      const confirmVerify = document.getElementById('confirmVerify');
+      const cancelVerify = document.getElementById('cancelVerify');
 
-    function closeVerificationModal() {
-      verificationModal.classList.remove('active');
-      selectedUser = null;
-    }
+      // Group Modal Elements
+      const createGroupModal = document.getElementById('createGroupModal');
+      const joinGroupModal = document.getElementById('joinGroupModal');
+      const showCreateGroup = document.getElementById('showCreateGroup');
+      const showJoinGroup = document.getElementById('showJoinGroup');
 
-    cancelVerify.addEventListener('click', closeVerificationModal);
+      // Toggle Modals
+      showCreateGroup.onclick = () => createGroupModal.classList.add('active');
+      document.getElementById('cancelCreate').onclick = () => createGroupModal.classList.remove('active');
+      showJoinGroup.onclick = () => joinGroupModal.classList.add('active');
+      document.getElementById('cancelJoin').onclick = () => joinGroupModal.classList.remove('active');
 
-    confirmVerify.addEventListener('click', async () => {
-      const password = modalPassword.value.trim();
-      if (!password) return;
+      // Create Group Logic
+      document.getElementById('confirmCreate').onclick = async () => {
+        const name = document.getElementById('groupName').value.trim();
+        const groupKey = document.getElementById('createGroupKey').value.trim();
+        if (!name || !groupKey) return alert('Fill all fields');
 
-      try {
-        confirmVerify.disabled = true;
-        const data = await fetchAPI('/verify-chat-password', {
-          method: 'POST',
-          body: JSON.stringify({ targetUserId: selectedUser._id, chatPassword: password })
-        });
-        sessionStorage.setItem(`chatToken_${selectedUser._id}`, data.chatToken);
-        window.location.href = `chat.html?target=${selectedUser._id}&name=${encodeURIComponent(selectedUser.username)}`;
-      } catch (err) {
-        modalError.textContent = err.message || 'Verification failed';
-        modalError.style.display = 'block';
-      } finally {
-        confirmVerify.disabled = false;
-      }
-    });
-
-    function createGroupCard(group) {
-      const div = document.createElement('div');
-      div.className = 'group-card';
-      div.innerHTML = `
-        <div class="group-info">
-          <div class="group-avatar">${group.name.charAt(0).toUpperCase()}</div>
-          <div>
-            <div class="group-name">${group.name}</div>
-            <div class="group-members">${group.members.length} members</div>
-          </div>
-        </div>
-        <button class="btn-join">
-          <i class="fas fa-comments"></i> Enter
-        </button>
-      `;
-      div.onclick = () => {
-        window.location.href = `chat.html?groupId=${group._id}&name=${encodeURIComponent(group.name)}`;
+        try {
+          await fetchAPI('/groups', {
+            method: 'POST',
+            body: JSON.stringify({ name, groupKey })
+          });
+          location.reload();
+        } catch (err) {
+          alert(err.message);
+        }
       };
-      return div;
-    }
 
-    function createUserCard(targetUser) {
-      const div = document.createElement('div');
-      div.className = 'user-card';
-      div.innerHTML = `
-        <div class="user-info">
-          <div class="user-avatar">${targetUser.username.charAt(0).toUpperCase()}</div>
-          <div class="user-name">${targetUser.username}</div>
-        </div>
-        <button class="btn-message">
-          <i class="fas fa-paper-plane"></i> Message
-        </button>
-      `;
-      div.onclick = () => openVerificationModal(targetUser);
-      return div;
-    }
+      // Join Group Logic
+      document.getElementById('confirmJoin').onclick = async () => {
+        const name = document.getElementById('joinGroupName').value.trim();
+        const groupKey = document.getElementById('joinGroupKey').value.trim();
+        if (!name || !groupKey) return alert('Fill all fields');
 
-    async function loadContent() {
-      try {
-        // Load Groups
-        const groupsList = document.getElementById('groupsList');
-        const groups = await fetchAPI('/groups');
-        groupsList.innerHTML = '';
-        if (groups.length === 0) {
-          groupsList.innerHTML = '<div class="no-results">No groups joined yet.</div>';
-        } else {
-          groups.forEach(g => groupsList.appendChild(createGroupCard(g)));
+        try {
+          await fetchAPI('/groups/join', {
+            method: 'POST',
+            body: JSON.stringify({ name, groupKey })
+          });
+          location.reload();
+        } catch (err) {
+          alert(err.message);
         }
+      };
 
-        // Load Recent Chats
-        const users = await fetchAPI('/recent');
-        const suggestedList = document.getElementById('suggestedList');
-        const suggestionTitle = document.querySelector('.section-title[data-section="suggestions"]');
-        if (suggestionTitle) suggestionTitle.textContent = 'Recent';
-        
-        suggestedList.innerHTML = '';
-        if (users.length === 0) {
-          suggestedList.innerHTML = '<div class="no-results" style="grid-column: 1/-1;">No recent chats yet. Start searching to chat!</div>';
-        } else {
-          users.forEach(u => suggestedList.appendChild(createUserCard(u)));
+      function openVerificationModal(targetUser) {
+        selectedUser = targetUser;
+        modalTargetName.textContent = targetUser.username;
+        modalPassword.value = '';
+        modalError.style.display = 'none';
+        verificationModal.classList.add('active');
+        modalPassword.focus();
+      }
+
+      function closeVerificationModal() {
+        verificationModal.classList.remove('active');
+        selectedUser = null;
+      }
+
+      cancelVerify.addEventListener('click', closeVerificationModal);
+
+      confirmVerify.addEventListener('click', async () => {
+        const password = modalPassword.value.trim();
+        if (!password) return;
+
+        try {
+          confirmVerify.disabled = true;
+          const data = await fetchAPI('/verify-chat-password', {
+            method: 'POST',
+            body: JSON.stringify({ targetUserId: selectedUser._id, chatPassword: password })
+          });
+          sessionStorage.setItem(`chatToken_${selectedUser._id}`, data.chatToken);
+          window.location.href = `chat.html?target=${selectedUser._id}&name=${encodeURIComponent(selectedUser.username)}`;
+        } catch (err) {
+          modalError.textContent = err.message || 'Verification failed';
+          modalError.style.display = 'block';
+        } finally {
+          confirmVerify.disabled = false;
         }
-      } catch (err) {
-        console.error(err);
+      });
+
+      function createGroupCard(group) {
+        const div = document.createElement('div');
+        div.className = 'group-card';
+        div.innerHTML = `
+          <div class="group-info">
+            <div class="group-avatar">${group.name.charAt(0).toUpperCase()}</div>
+            <div>
+              <div class="group-name">${group.name}</div>
+              <div class="group-members">${group.members.length} members</div>
+            </div>
+          </div>
+          <button class="btn-join">
+            <i class="fas fa-comments"></i> Enter
+          </button>
+        `;
+        div.onclick = () => {
+          window.location.href = `chat.html?groupId=${group._id}&name=${encodeURIComponent(group.name)}`;
+        };
+        return div;
       }
-    }
 
-    loadContent();
-
-    // Search Logic (Simplified)
-    const searchInput = document.getElementById('searchInput');
-    const resultsArea = document.getElementById('resultsArea');
-    const searchResults = document.getElementById('searchResults');
-
-    searchInput.addEventListener('input', async (e) => {
-      const query = e.target.value.trim();
-      if (!query) {
-        resultsArea.classList.remove('active');
-        return;
+      function createUserCard(targetUser) {
+        const div = document.createElement('div');
+        div.className = 'user-card';
+        div.innerHTML = `
+          <div class="user-info">
+            <div class="user-avatar">${targetUser.username.charAt(0).toUpperCase()}</div>
+            <div class="user-name">${targetUser.username}</div>
+          </div>
+          <button class="btn-message">
+            <i class="fas fa-paper-plane"></i> Message
+          </button>
+        `;
+        div.onclick = () => openVerificationModal(targetUser);
+        return div;
       }
-      resultsArea.classList.add('active');
-      const users = await fetchAPI(`/search-users?query=${encodeURIComponent(query)}`);
-      searchResults.innerHTML = '';
-      users.forEach(u => searchResults.appendChild(createUserCard(u)));
+
+      async function loadContent() {
+        try {
+          // Load Groups
+          const groupsList = document.getElementById('groupsList');
+          const groups = await fetchAPI('/groups');
+          groupsList.innerHTML = '';
+          if (groups.length === 0) {
+            groupsList.innerHTML = '<div class="no-results">No groups joined yet.</div>';
+          } else {
+            groups.forEach(g => groupsList.appendChild(createGroupCard(g)));
+          }
+
+          // Load Recent Chats
+          const users = await fetchAPI('/recent');
+          const suggestedList = document.getElementById('suggestedList');
+          const suggestionTitle = document.querySelector('.section-title[data-section="suggestions"]');
+          if (suggestionTitle) suggestionTitle.textContent = 'Recent';
+          
+          suggestedList.innerHTML = '';
+          if (users.length === 0) {
+            suggestedList.innerHTML = '<div class="no-results" style="grid-column: 1/-1;">No recent chats yet. Start searching to chat!</div>';
+          } else {
+            users.forEach(u => suggestedList.appendChild(createUserCard(u)));
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      loadContent();
+
+      // Search Logic (Simplified)
+      const searchInput = document.getElementById('searchInput');
+      const resultsArea = document.getElementById('resultsArea');
+      const searchResults = document.getElementById('searchResults');
+
+      searchInput.addEventListener('input', async (e) => {
+        const query = e.target.value.trim();
+        if (!query) {
+          resultsArea.classList.remove('active');
+          return;
+        }
+        resultsArea.classList.add('active');
+        const users = await fetchAPI(`/search-users?query=${encodeURIComponent(query)}`);
+        searchResults.innerHTML = '';
+        users.forEach(u => searchResults.appendChild(createUserCard(u)));
+      });
     });
   </script>
 </body>
