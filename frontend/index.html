@@ -42,81 +42,90 @@
     </div>
   </div>
 
-  <script src="js/api.js?v=0.1.5"></script>
+  <script src="js/api.js?v=0.1.5" defer></script>
+  <script src="js/autofill-fix.js" defer></script>
   <script>
-    // Ripple Effect Logic
-    document.querySelectorAll('.btn-primary').forEach(button => {
-      button.addEventListener('click', function(e) {
-        let x = e.clientX - e.target.offsetLeft;
-        let y = e.clientY - e.target.offsetTop;
-        let ripple = document.createElement('span');
-        ripple.className = 'ripple';
-        ripple.style.left = x + 'px';
-        ripple.style.top = y + 'px';
-        this.appendChild(ripple);
-        setTimeout(() => ripple.remove(), 600);
-      });
-    });
-
-    // Password Toggle Logic
-    const togglePass = document.getElementById('togglePass');
-    const passInput = document.getElementById('loginPassword');
-    togglePass.addEventListener('click', () => {
-      const type = passInput.getAttribute('type') === 'password' ? 'text' : 'password';
-      passInput.setAttribute('type', type);
-      togglePass.textContent = type === 'password' ? '👁️' : '🙈';
-    });
-
-    // Particles Animation
-    const particles = document.getElementById('particles');
-    for (let i = 0; i < 20; i++) {
-      const p = document.createElement('div');
-      p.style.position = 'absolute';
-      p.style.width = Math.random() * 5 + 'px';
-      p.style.height = p.style.width;
-      p.style.background = 'rgba(255,255,255,0.1)';
-      p.style.borderRadius = '50%';
-      p.style.top = Math.random() * 100 + '%';
-      p.style.left = Math.random() * 100 + '%';
-      p.style.animation = `floatBG ${Math.random() * 5 + 5}s infinite ease-in-out`;
-      particles.appendChild(p);
-    }
-
-    // Login Logic
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const username = document.getElementById('username').value;
-      const loginPassword = document.getElementById('loginPassword').value;
-      const errorMsg = document.getElementById('errorMsg');
-      const submitBtn = document.getElementById('submitBtn');
-      const card = document.getElementById('loginCard');
-
-      try {
-        submitBtn.disabled = true;
-        submitBtn.querySelector('span').textContent = 'Authenticating...';
-        errorMsg.style.display = 'none';
-
-        const data = await fetchAPI('/login', {
-          method: 'POST',
-          body: JSON.stringify({ username, loginPassword })
+    document.addEventListener('DOMContentLoaded', () => {
+      // Ripple Effect Logic
+      document.querySelectorAll('.btn-primary').forEach(button => {
+        button.addEventListener('click', function(e) {
+          let x = e.clientX - e.target.offsetLeft;
+          let y = e.clientY - e.target.offsetTop;
+          let ripple = document.createElement('span');
+          ripple.className = 'ripple';
+          ripple.style.left = x + 'px';
+          ripple.style.top = y + 'px';
+          this.appendChild(ripple);
+          setTimeout(() => ripple.remove(), 600);
         });
+      });
 
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        
-        card.classList.add('fade-out');
-        setTimeout(() => window.location.href = 'search.html', 50);
-      } catch (err) {
-        errorMsg.textContent = err.message;
-        errorMsg.style.display = 'block';
-        card.classList.add('shake');
-        setTimeout(() => card.classList.remove('shake'), 400);
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.querySelector('span').textContent = 'Log In';
+      // Password Toggle Logic
+      const togglePass = document.getElementById('togglePass');
+      const passInput = document.getElementById('loginPassword');
+      if (togglePass && passInput) {
+        togglePass.addEventListener('click', () => {
+          const type = passInput.getAttribute('type') === 'password' ? 'text' : 'password';
+          passInput.setAttribute('type', type);
+          togglePass.textContent = type === 'password' ? '👁️' : '🙈';
+        });
+      }
+
+      // Particles Animation
+      const particles = document.getElementById('particles');
+      if (particles) {
+        for (let i = 0; i < 20; i++) {
+          const p = document.createElement('div');
+          p.style.position = 'absolute';
+          p.style.width = Math.random() * 5 + 'px';
+          p.style.height = p.style.width;
+          p.style.background = 'rgba(255,255,255,0.1)';
+          p.style.borderRadius = '50%';
+          p.style.top = Math.random() * 100 + '%';
+          p.style.left = Math.random() * 100 + '%';
+          p.style.animation = `floatBG ${Math.random() * 5 + 5}s infinite ease-in-out`;
+          particles.appendChild(p);
+        }
+      }
+
+      // Login Logic
+      const loginForm = document.getElementById('loginForm');
+      if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const username = document.getElementById('username')?.value;
+          const loginPassword = document.getElementById('loginPassword')?.value;
+          const errorMsg = document.getElementById('errorMsg');
+          const submitBtn = document.getElementById('submitBtn');
+          const card = document.getElementById('loginCard');
+
+          try {
+            submitBtn.disabled = true;
+            submitBtn.querySelector('span').textContent = 'Authenticating...';
+            errorMsg.style.display = 'none';
+
+            const data = await fetchAPI('/login', {
+              method: 'POST',
+              body: JSON.stringify({ username, loginPassword })
+            });
+
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            
+            card.classList.add('fade-out');
+            setTimeout(() => window.location.href = 'search.html', 50);
+          } catch (err) {
+            errorMsg.textContent = err.message;
+            errorMsg.style.display = 'block';
+            card.classList.add('shake');
+            setTimeout(() => card.classList.remove('shake'), 400);
+          } finally {
+            submitBtn.disabled = false;
+            submitBtn.querySelector('span').textContent = 'Log In';
+          }
+        });
       }
     });
   </script>
-  <script src="js/autofill-fix.js"></script>
 </body>
 </html>
