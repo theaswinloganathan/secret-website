@@ -97,75 +97,76 @@
       el.textContent = type === 'password' ? '👁️' : '🙈';
     }
 
-    // Password Strength Meter
-    document.getElementById('loginPassword').addEventListener('input', function(e) {
-      const val = e.target.value;
-      const bar = document.getElementById('strengthBar');
-      let strength = 0;
-      if (val.length > 5) strength += 33;
-      if (/[A-Z]/.test(val)) strength += 33;
-      if (/[0-9]/.test(val)) strength += 34;
-      
-      bar.style.width = strength + '%';
-      if (strength < 40) bar.style.background = '#ff3366';
-      else if (strength < 80) bar.style.background = '#ffcc00';
-      else bar.style.background = '#00ff88';
-    });
+    document.addEventListener('DOMContentLoaded', () => {
+      // Password Strength Meter
+      document.getElementById('loginPassword').addEventListener('input', function(e) {
+        const val = e.target.value;
+        const bar = document.getElementById('strengthBar');
+        let strength = 0;
+        if (val.length > 5) strength += 33;
+        if (/[A-Z]/.test(val)) strength += 33;
+        if (/[0-9]/.test(val)) strength += 34;
+        
+        bar.style.width = strength + '%';
+        if (strength < 40) bar.style.background = '#ff3366';
+        else if (strength < 80) bar.style.background = '#ffcc00';
+        else bar.style.background = '#00ff88';
+      });
 
-    // Ripple Effect
-    document.querySelectorAll('.btn-primary').forEach(button => {
-      button.addEventListener('click', function(e) {
-        let ripple = document.createElement('span');
-        ripple.className = 'ripple';
-        ripple.style.left = (e.clientX - e.target.offsetLeft) + 'px';
-        ripple.style.top = (e.clientY - e.target.offsetTop) + 'px';
-        this.appendChild(ripple);
-        setTimeout(() => ripple.remove(), 600);
+      // Ripple Effect
+      document.querySelectorAll('.btn-primary').forEach(button => {
+        button.addEventListener('click', function(e) {
+          let ripple = document.createElement('span');
+          ripple.className = 'ripple';
+          ripple.style.left = (e.clientX - e.target.offsetLeft) + 'px';
+          ripple.style.top = (e.clientY - e.target.offsetTop) + 'px';
+          this.appendChild(ripple);
+          setTimeout(() => ripple.remove(), 600);
+        });
+      });
+
+      // Particles
+      const particles = document.getElementById('particles');
+      for (let i = 0; i < 20; i++) {
+        const p = document.createElement('div');
+        p.style.cssText = `position:absolute; width:${Math.random()*5}px; height:5px; background:rgba(255,255,255,0.1); border-radius:50%; top:${Math.random()*100}%; left:${Math.random()*100}%; animation: floatBG ${Math.random()*5+5}s infinite ease-in-out;`;
+        particles.appendChild(p);
+      }
+
+      // Register Logic
+      document.getElementById('signupForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const loginPassword = document.getElementById('loginPassword').value;
+        const chatPassword = document.getElementById('chatPassword').value;
+        const errorMsg = document.getElementById('errorMsg');
+        const submitBtn = document.getElementById('submitBtn');
+        const card = document.getElementById('signupCard');
+
+        try {
+          submitBtn.disabled = true;
+          submitBtn.querySelector('span').textContent = 'Generating Access...';
+          errorMsg.style.display = 'none';
+
+          await fetchAPI('/register', {
+            method: 'POST',
+            body: JSON.stringify({ username, loginPassword, chatPassword })
+          });
+
+          alert('Access Generated Successfully. Redirecting to Terminal...');
+          card.classList.add('fade-out');
+          setTimeout(() => window.location.href = 'index.html', 50);
+        } catch (err) {
+          errorMsg.textContent = err.message;
+          errorMsg.style.display = 'block';
+          card.classList.add('shake');
+          setTimeout(() => card.classList.remove('shake'), 400);
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.querySelector('span').textContent = 'Activate Access';
+        }
       });
     });
-
-    // Particles
-    const particles = document.getElementById('particles');
-    for (let i = 0; i < 20; i++) {
-      const p = document.createElement('div');
-      p.style.cssText = `position:absolute; width:${Math.random()*5}px; height:5px; background:rgba(255,255,255,0.1); border-radius:50%; top:${Math.random()*100}%; left:${Math.random()*100}%; animation: floatBG ${Math.random()*5+5}s infinite ease-in-out;`;
-      particles.appendChild(p);
-    }
-
-    // Register Logic
-    document.getElementById('signupForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const username = document.getElementById('username').value;
-      const loginPassword = document.getElementById('loginPassword').value;
-      const chatPassword = document.getElementById('chatPassword').value;
-      const errorMsg = document.getElementById('errorMsg');
-      const submitBtn = document.getElementById('submitBtn');
-      const card = document.getElementById('signupCard');
-
-      try {
-        submitBtn.disabled = true;
-        submitBtn.querySelector('span').textContent = 'Generating Access...';
-        errorMsg.style.display = 'none';
-
-        await fetchAPI('/register', {
-          method: 'POST',
-          body: JSON.stringify({ username, loginPassword, chatPassword })
-        });
-
-        alert('Access Generated Successfully. Redirecting to Terminal...');
-        card.classList.add('fade-out');
-        setTimeout(() => window.location.href = 'index.html', 50);
-      } catch (err) {
-        errorMsg.textContent = err.message;
-        errorMsg.style.display = 'block';
-        card.classList.add('shake');
-        setTimeout(() => card.classList.remove('shake'), 400);
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.querySelector('span').textContent = 'Activate Access';
-      }
-    });
   </script>
-  <script src="js/autofill-fix.js"></script>
 </body>
 </html>
