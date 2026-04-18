@@ -16,6 +16,15 @@ const Message = require('./models/Message');
 const User = require('./models/User');
 const cron = require('node-cron');
 
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST']
+  }
+});
+
 // Cleanup Cron Job - Runs every minute
 cron.schedule('* * * * *', async () => {
   try {
@@ -40,15 +49,6 @@ cron.schedule('* * * * *', async () => {
     }
   } catch (err) {
     console.error('Expiration Cron Error:', err);
-  }
-});
-
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: '*',
-    methods: ['GET', 'POST']
   }
 });
 

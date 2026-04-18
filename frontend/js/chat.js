@@ -3,6 +3,11 @@ if (!user || !localStorage.getItem('token')) {
   window.location.href = 'index.html';
 }
 
+if (typeof io === 'undefined') {
+  alert('Critical Error: Socket.io failed to load. Please check your internet connection or if the backend server is running.');
+  window.location.href = 'search.html';
+  throw new Error('Socket.io not found');
+}
 const socket = io(API_BASE_URL);
 const urlParams = new URLSearchParams(window.location.search);
 const targetId = urlParams.get('target');

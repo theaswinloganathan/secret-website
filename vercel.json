@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "buildCommand": "cd react-frontend && npm install && npm run build",
+  "outputDirectory": "react-frontend/dist",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://secret-website-6ggb.onrender.com/api/$1"
+    },
+    {
+      "source": "/socket.io/(.*)",
+      "destination": "https://secret-website-6ggb.onrender.com/socket.io/$1"
+    },
+    {
+      "source": "/uploads/(.*)",
+      "destination": "https://secret-website-6ggb.onrender.com/uploads/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
